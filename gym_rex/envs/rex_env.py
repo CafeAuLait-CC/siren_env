@@ -51,7 +51,7 @@ class RexEnv(gym.Env):
 			return [self.state, self.reward, self.done, self.add]
 		else:
 			if self.counter % 2 == 0:
-				self.state[action//3][action%3] == "o"
+				self.state[action//3][action%3] = "o"
 			else:
 				self.state[action//3][action%3] = "x"
 			self.counter += 1
