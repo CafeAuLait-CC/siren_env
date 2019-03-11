@@ -16,6 +16,8 @@ class RexEnv(gym.Env):
 		self.done = 0
 		self.add = [0, 0]
 		self.reward = 0
+		self.action_space = spaces.Discrete(9)
+		self.observation_space = spaces.Box(0, 255, (210, 160, 3))
 
 	def check(self):
 		if(self.counter<5):
