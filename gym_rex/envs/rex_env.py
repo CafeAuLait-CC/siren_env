@@ -93,9 +93,9 @@ class RexEnv(gym.Env):
 		gameDisplay = textDisplay.NullGraphics()
 		rules.quiet = True
 		game = rules.newGame(args['layout'], args['pacman'], args['ghosts'], gameDisplay, beQuiet, args['catchExceptions'])
-		self.done = 0
+		self.done = game.gameOver
 		self.info = {}
-		self.reward = 0
+		self.reward = game.state.data.score
 		return self.state
 		# for i in range(3):
 		# 	for j in range(3):
