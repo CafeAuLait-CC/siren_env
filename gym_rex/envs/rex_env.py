@@ -2,23 +2,35 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
+from pacman import *
 
 class RexEnv(gym.Env):
 	metadata = {'render.modes' : ['human']}
 
 	def __init__(self):
-		self.state = []
 		# create the game board
-		for i in range(3):
-			self.state += [[]]
-			for j in range(3):
-				self.state[i] += ["-"]
-		self.counter = 0
-		self.done = 0
-		self.add = [0, 0]
-		self.reward = 0
-		self.action_space = spaces.Discrete(9)
+		args = readCommand( sys.argv[1:] ) # Get game components based on input
+		rules = ClassicGameRules(args['timeout'])
+		beQuiet = True
+		import textDisplay
+		gameDisplay = textDisplay.NullGraphics()
+		rules.quiet = True
+		game = rules.newGame(args['layout'], args['pacman'], args['ghosts'], gameDisplay, beQuiet, args['catchExceptions'])
+		self.done = game.gameOver
+		self.reward = game.state.data.score
+		self.info = {}
+		self.action_space = spaces.Discrete(5)
 		self.observation_space = spaces.Box(0, 255, (210, 160, 3), dtype=np.uint8)
+		# # create the game board -- Tic-Tac-Toe
+		# self.state = []
+		# for i in range(3):
+		# 	self.state += [[]]
+		# 	for j in range(3):
+		# 		self.state[i] += ["-"]
+		# self.counter = 0
+		# self.done = 0
+		# self.add = [0, 0]
+		# self.reward = 0
 
 	def check(self):
 		if(self.counter<5):
@@ -46,46 +58,53 @@ class RexEnv(gym.Env):
 				return 2
 
 	def step(self, action):
-		if self.done == 1:
-			print("Game Over")
-			return [self.state, self.reward, self.done, self.add]
-		elif self.state[action//3][action%3] != "-":
-			print("Invalid Step")
-			return [self.state, self.reward, self.done, self.add]
-		else:
-			if self.counter % 2 == 0:
-				self.state[action//3][action%3] = "o"
-			else:
-				self.state[action//3][action%3] = "x"
-			self.counter += 1
-			if self.counter == 9:
-				self.done = 1
-			self.render()
+		# if self.done == 1:
+		# 	print("Game Over")
+		# 	return [self.state, self.reward, self.done, self.info]
+		# elif self.state[action//3][action%3] != "-":
+		# 	print("Invalid Step")
+		# 	return [self.state, self.reward, self.done, self.info]
+		# else:
+		# 	if self.counter % 2 == 0:
+		# 		self.state[action//3][action%3] = "o"
+		# 	else:
+		# 		self.state[action//3][action%3] = "x"
+		# 	self.counter += 1
+		# 	if self.counter == 9:
+		# 		self.done = 1
+		# 	self.render()
 
-			win = self.check()
-			if win :
-				self.done = 1
-				print("Player ", win, " wins.", sep="", end="\n")
-				self.add[win-1] = 1
-				if win == 1:
-					self.reward = 100
-				else:
-					self.reset = -100
-			return [self.state, self.reward, self.done, self.add]
+		# 	win = self.check()
+		# 	if win :
+		# 		self.done = 1
+		# 		print("Player ", win, " wins.", sep="", end="\n")
+		# 		self.info[win-1] = 1
+		# 		if win == 1:
+		# 			self.reward = 100
+		# 		else:
+		# 			self.reset = -100
+		# 	return [self.state, self.reward, self.done, self.info]
 
 	def reset(self):
-		for i in range(3):
-			for j in range(3):
-				self.state[i][j] = "-"
-		self.counter = 0
+		args = readCommand( sys.argv[1:] ) # Get game components based on input
+		rules = ClassicGameRules(args['timeout'])
+		beQuiet = True
+		import textDisplay
+		gameDisplay = textDisplay.NullGraphics()
+		rules.quiet = True
+		game = rules.newGame(args['layout'], args['pacman'], args['ghosts'], gameDisplay, beQuiet, args['catchExceptions'])
 		self.done = 0
-		self.add = [0, 0]
+		self.info = {}
 		self.reward = 0
 		return self.state
+		# for i in range(3):
+		# 	for j in range(3):
+		# 		self.state[i][j] = "-"
+		# self.counter = 0
 
 	def render(self, mode='human', close=False):
-		for i in range(3):
-			for j in range(3):
-				print(self.state[i][j], end=" ")
-			print("")
+		# for i in range(3):
+		# 	for j in range(3):
+		# 		print(self.state[i][j], end=" ")
+		# 	print("")
 
