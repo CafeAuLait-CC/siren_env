@@ -6,14 +6,13 @@ import random
 
 class gymAgent(Agent):
     """
-    An agent controlled by the keyboard.
+    An agent controlled by Gym.
     """
-    # NOTE: Arrow keys also work.
-    WEST_KEY  = 'a'
-    EAST_KEY  = 'd'
-    NORTH_KEY = 'w'
-    SOUTH_KEY = 's'
-    STOP_KEY = 'q'
+    WEST_KEY  = 0
+    EAST_KEY  = 1
+    NORTH_KEY = 2
+    SOUTH_KEY = 3
+    STOP_KEY = 4
 
     def __init__( self, index = 0 ):
 
@@ -21,7 +20,7 @@ class gymAgent(Agent):
         self.index = index
         self.keys = []
 
-    def getAction( self, state):
+    def getAction(self, state):
         from graphicsUtils import keys_waiting
         from graphicsUtils import keys_pressed
         keys = list(keys_waiting()) + list(keys_pressed())
