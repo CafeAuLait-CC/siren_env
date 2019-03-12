@@ -1,6 +1,7 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
+import numpy as np
 
 class RexEnv(gym.Env):
 	metadata = {'render.modes' : ['human']}
@@ -17,7 +18,7 @@ class RexEnv(gym.Env):
 		self.add = [0, 0]
 		self.reward = 0
 		self.action_space = spaces.Discrete(9)
-		self.observation_space = spaces.Box(0, 255, (210, 160, 3))
+		self.observation_space = spaces.Box(0, 255, (210, 160, 3), dtype=np.uint8)
 
 	def check(self):
 		if(self.counter<5):
