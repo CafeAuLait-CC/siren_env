@@ -58,6 +58,8 @@ class RexEnv(gym.Env):
 				return 2
 
 	def step(self, action):
+
+		return [self.state, self.reward, self.done, self.info]
 		# if self.done == 1:
 		# 	print("Game Over")
 		# 	return [self.state, self.reward, self.done, self.info]
@@ -83,7 +85,7 @@ class RexEnv(gym.Env):
 		# 			self.reward = 100
 		# 		else:
 		# 			self.reset = -100
-		# 	return [self.state, self.reward, self.done, self.info]
+		#	return [self.state, self.reward, self.done, self.info]
 
 	def reset(self):
 		args = readCommand( sys.argv[1:] ) # Get game components based on input
@@ -103,6 +105,8 @@ class RexEnv(gym.Env):
 		# self.counter = 0
 
 	def render(self, mode='human', close=False):
+		# game.state.data.agentStates[0].getPosition()	// current pacman position
+
 		# for i in range(3):
 		# 	for j in range(3):
 		# 		print(self.state[i][j], end=" ")
