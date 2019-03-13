@@ -2,6 +2,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
+import cv2 as cv
 from pacman import *
 
 class RexEnv(gym.Env):
@@ -17,8 +18,10 @@ class RexEnv(gym.Env):
 		gameDisplay = textDisplay.NullGraphics()
 		rules.quiet = True
 		self.game = rules.newGame(args['layout'], args['pacman'], args['ghosts'], gameDisplay, beQuiet, args['catchExceptions'])
+		self.game.numMoves = 0
+		self.state = []
 		self.done = self.game.gameOver
-		self.reward = self.game.state.data.score
+		self.reward = self.game.state.getScore()
 		self.info = {}
 		self.action_space = spaces.Discrete(5)	# len(game.state.getLegalPacmanActions())
 		self.observation_space = spaces.Box(0, 255, (210, 160, 3), dtype=np.uint8)
@@ -60,12 +63,15 @@ class RexEnv(gym.Env):
 
 	def step(self, action):
 		self.game.moveHistory.append((self.game.startingIndex, action))
-		self.game.state = self.game.state.generateSuccessor((self.game.startingIndex, action))
+		self.game.state = self.game.state.generateSuccessor(self.game.startingIndex, action)
 		self.game.display.update(self.game.state.data)
 		self.game.rules.process(self.game.state, self.game)
 		self.game.numMoves += 1
 		self.game.display.finish()
-		return [self.game.state, self.reward, self.done, self.info]	# state: grid to image
+		self.state = self.game.state
+		self.reward = self.game.state.getScore()
+		self.done = self.game.gameOver
+		return [self.state, self.reward, self.done, self.info]	# state: grid to image
 		# if self.done == 1:
 		# 	print("Game Over")
 		# 	return [self.state, self.reward, self.done, self.info]
@@ -101,20 +107,25 @@ class RexEnv(gym.Env):
 		gameDisplay = textDisplay.NullGraphics()
 		rules.quiet = True
 		self.game = rules.newGame(args['layout'], args['pacman'], args['ghosts'], gameDisplay, beQuiet, args['catchExceptions'])
+		self.game.numMoves = 0
 		self.done = self.game.gameOver
 		self.info = {}
-		self.reward = self.game.state.data.score
-		return self.game.state 	# state: grid to image
+		self.reward = self.game.state.getScore()
+		self.state = self.game.state
+		return self.state 	# state: grid to image
 		# for i in range(3):
 		# 	for j in range(3):
 		# 		self.state[i][j] = "-"
 		# self.counter = 0
 
 	def render(self, mode='human', close=False):
-		game.state.data.agentStates[0].getPosition()	# current pacman position
-
+		# self.game.state.data.agentStates[0].getPosition()	# current pacman position
+		print(self.game.state)
 		# for i in range(3):
 		# 	for j in range(3):
 		# 		print(self.state[i][j], end=" ")
 		# 	print("")
+
+def grid2Img(gridState, imgWidth, imgHeight):
+	pass
 
