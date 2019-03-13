@@ -10,6 +10,7 @@ dir = path.dirname(__file__)
 sys.path.append(dir)
 
 from pacman import *
+from game import Actions
 
 class RexEnv(gym.Env):
 	metadata = {'render.modes' : ['human']}
@@ -68,6 +69,7 @@ class RexEnv(gym.Env):
 	# 			return 2
 
 	def step(self, action):
+		action = list(Actions._directions.keys())[action]	# action format from number to string
 		self.game.moveHistory.append((self.game.startingIndex, action))
 		self.game.state = self.game.state.generateSuccessor(self.game.startingIndex, action)
 		self.game.display.update(self.game.state.data)
@@ -133,7 +135,7 @@ class RexEnv(gym.Env):
 		# 	print("")
 
 	def get_action_meanings(self):
-		pass
+		print(list(Actions._directions.keys()))
 
 def grid2Img(gridState, imgWidth, imgHeight):
 	img = np.zeros((imgWidth, imgHeight), dtype=np.uint8)
