@@ -8,8 +8,6 @@ from os import path
 
 dir = path.dirname(__file__)
 sys.path.append(dir)
-# sys.path.append(dir + "/layouts")
-# print(sys.path)
 
 from pacman import *
 
@@ -135,5 +133,6 @@ class RexEnv(gym.Env):
 		# 	print("")
 
 def grid2Img(gridState, imgWidth, imgHeight):
-	pass
+	img = np.zeros((imgWidth, imgHeight), dtype=np.uint8)
+	return img
 
