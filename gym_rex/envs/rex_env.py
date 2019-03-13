@@ -132,6 +132,9 @@ class RexEnv(gym.Env):
 		# 		print(self.state[i][j], end=" ")
 		# 	print("")
 
+	def get_action_meanings(self):
+		pass
+
 def grid2Img(gridState, imgWidth, imgHeight):
 	img = np.zeros((imgWidth, imgHeight), dtype=np.uint8)
 	return img
