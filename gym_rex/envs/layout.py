@@ -130,10 +130,10 @@ class Layout:
             self.numGhosts += 1
 def getLayout(name, back = 2):
     if name.endswith('.lay'):
-        layout = tryToLoad('layouts/' + name)
+        layout = tryToLoad(os.path.dirname(__file__) + '/layouts/' + name)
         if layout == None: layout = tryToLoad(name)
     else:
-        layout = tryToLoad('layouts/' + name + '.lay')
+        layout = tryToLoad(os.path.dirname(__file__) + '/layouts/' + name + '.lay')
         if layout == None: layout = tryToLoad(name + '.lay')
     if layout == None and back >= 0:
         curdir = os.path.abspath('.')

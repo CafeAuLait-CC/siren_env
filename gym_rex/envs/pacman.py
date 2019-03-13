@@ -592,6 +592,7 @@ def loadAgent(pacman, nographics):
     else:
         pythonPathDirs = pythonPathStr.split(';')
     pythonPathDirs.append('.')
+    pythonPathDirs.append(os.path.dirname(__file__))
 
     for moduleDir in pythonPathDirs:
         if not os.path.isdir(moduleDir): continue

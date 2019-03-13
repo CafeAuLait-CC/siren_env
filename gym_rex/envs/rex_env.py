@@ -3,6 +3,14 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
 import cv2 as cv
+import sys
+from os import path
+
+dir = path.dirname(__file__)
+sys.path.append(dir)
+# sys.path.append(dir + "/layouts")
+# print(sys.path)
+
 from pacman import *
 
 class RexEnv(gym.Env):
