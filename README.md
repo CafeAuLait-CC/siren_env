@@ -1,4 +1,4 @@
-# gym_rex
+# ReX-v0
 My custom Gym enviroment for the [Re_X](https://github.com/AXU9513/Re_X) project.
 
 ## Requirements
