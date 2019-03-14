@@ -17,7 +17,7 @@ class RexEnv(gym.Env):
 
 	def __init__(self):
 		# create the game board
-		args = readCommand( sys.argv[1:] ) # Get game components based on input
+		args = readCommand() # Get game components based on input
 		args['pacman'] = "gymAgents"
 		rules = ClassicGameRules(args['timeout'])
 		beQuiet = True
@@ -62,7 +62,7 @@ class RexEnv(gym.Env):
 		return [self.state, self.reward, self.done, self.info]
 
 	def reset(self):
-		args = readCommand( sys.argv[1:] ) # Get game components based on input
+		args = readCommand() # Get game components based on input
 		rules = ClassicGameRules(args['timeout'])
 		beQuiet = True
 		import textDisplay

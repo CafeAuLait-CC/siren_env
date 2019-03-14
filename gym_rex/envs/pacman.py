@@ -474,7 +474,7 @@ def parseAgentArgs(str):
         opts[key] = val
     return opts
 
-def readCommand( argv ):
+def readCommand():
     """
     Processes the command used to run pacman from the command line.
     """
@@ -493,7 +493,7 @@ def readCommand( argv ):
                       help=default('the number of GAMES to play'), metavar='GAMES', default=1)
     parser.add_option('-l', '--layout', dest='layout',
                       help=default('the LAYOUT_FILE from which to load the map layout'),
-                      metavar='LAYOUT_FILE', default='MyMapNoWalls')
+                      metavar='LAYOUT_FILE', default='MyMap')
     parser.add_option('-p', '--pacman', dest='pacman',
                       help=default('the agent TYPE in the pacmanAgents module to use'),
                       metavar='TYPE', default='KeyboardAgent')
@@ -525,7 +525,7 @@ def readCommand( argv ):
     parser.add_option('--timeout', dest='timeout', type='int',
                       help=default('Maximum length of time an agent can spend computing in a single game'), default=30)
 
-    options, otherjunk = parser.parse_args(argv)
+    options, otherjunk = parser.parse_args([])
     if len(otherjunk) != 0:
         raise Exception('Command line input not understood: ' + str(otherjunk))
     args = dict()
