@@ -26,13 +26,13 @@ class RexEnv(gym.Env):
 		rules.quiet = True
 		self.game = rules.newGame(args['layout'], args['pacman'], args['ghosts'], gameDisplay, beQuiet, args['catchExceptions'])
 		self.game.numMoves = 0
-		self.state = []
 		self.done = self.game.gameOver
 		self.reward = self.game.state.getScore()
 		self.info = {}
 		self.action_space = spaces.Discrete(5)	# len(game.state.getLegalPacmanActions())
 		self.observation_space = spaces.Box(0, 255, (210, 160, 3), dtype=np.uint8)
 		self.gameBoard = initGameBoard()
+		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data))
 		# # create the game board -- Tic-Tac-Toe
 		# self.state = []
 		# for i in range(3):
@@ -77,10 +77,10 @@ class RexEnv(gym.Env):
 		self.game.rules.process(self.game.state, self.game)
 		self.game.numMoves += 1
 		self.game.display.finish()
-		self.state = self.game.state
+		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data))
 		self.reward = self.game.state.getScore()
 		self.done = self.game.gameOver
-		return [self.state, self.reward, self.done, self.info]	# state: grid to image
+		return [self.state, self.reward, self.done, self.info]
 		# if self.done == 1:
 		# 	print("Game Over")
 		# 	return [self.state, self.reward, self.done, self.info]
@@ -120,9 +120,9 @@ class RexEnv(gym.Env):
 		self.done = self.game.gameOver
 		self.info = {}
 		self.reward = self.game.state.getScore()
-		self.state = self.game.state
 		self.gameBoard = initGameBoard()
-		return self.state 	# state: grid to image
+		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data))
+		return self.state
 		# for i in range(3):
 		# 	for j in range(3):
 		# 		self.state[i][j] = "-"
@@ -131,6 +131,9 @@ class RexEnv(gym.Env):
 	def render(self, mode='human', close=False):
 		# self.game.state.data.agentStates[0].getPosition()	# current pacman position
 		print(self.game.state)
+		cv2.imshow("Recman - Score: " + str(self.reward), self.state)
+		cv2.waitKey(10)
+		cv2.destroyAllWindows()
 		# for i in range(3):
 		# 	for j in range(3):
 		# 		print(self.state[i][j], end=" ")
@@ -146,12 +149,9 @@ def stateGrid2Img(gameBoard, foodData):
 	blue = [136, 28, 0]
 	for row in range(2, 169, 12):
 		for col in range(3, 140, 8):
-	# for row in range(foodData.shape[0]):
-	# 	for col in range(foodData.shape[1]):
 			if not foodData[row//12][col//8]:
 				if col > 70: col = col + 4
 				gameBoard[2+row:13+row, 3+col:10+col] = blue
-				# gameBoard[row*12+2:row*12+2+12, col*7+3:col*7+3+7] = blue
 	return gameBoard
 
 def initGameBoard():
