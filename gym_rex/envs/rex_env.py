@@ -35,7 +35,17 @@ class RexEnv(gym.Env):
 		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
 
 	def step(self, action):
-		action = list(Actions._directions.keys())[action]	# action format from number to string
+		if action == 0:
+			action = 'Stop'
+		elif action == 1:
+			action = 'North'
+		elif action == 2:
+			action = 'South'
+		elif action == 3:
+			action = 'East'
+		else:
+			action = 'West'
+		# action = list(Actions._directions.keys())[action]	# action format from number to string
 		self.game.moveHistory.append((self.game.startingIndex, action))
 		self.game.state = self.game.state.generateSuccessor(self.game.startingIndex, action)
 		self.game.display.update(self.game.state.data)
@@ -45,7 +55,7 @@ class RexEnv(gym.Env):
 		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
 		self.reward = self.game.state.getScore()
 		self.done = self.game.gameOver
-		if self.game.numMoves > 300:
+		if self.game.numMoves > 1000:
 			self.done = True
 			self.info['info'] = 'Failed to complete. Too many moves.'
 			self.info['numMoves'] = self.game.numMoves
