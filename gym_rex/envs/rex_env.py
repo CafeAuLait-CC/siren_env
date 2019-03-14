@@ -2,7 +2,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
-import cv2 as cv
+import cv2
 import sys
 from os import path
 
@@ -32,6 +32,7 @@ class RexEnv(gym.Env):
 		self.info = {}
 		self.action_space = spaces.Discrete(5)	# len(game.state.getLegalPacmanActions())
 		self.observation_space = spaces.Box(0, 255, (210, 160, 3), dtype=np.uint8)
+		self.gameBoard = initGameBoard()
 		# # create the game board -- Tic-Tac-Toe
 		# self.state = []
 		# for i in range(3):
@@ -120,6 +121,7 @@ class RexEnv(gym.Env):
 		self.info = {}
 		self.reward = self.game.state.getScore()
 		self.state = self.game.state
+		self.gameBoard = initGameBoard()
 		return self.state 	# state: grid to image
 		# for i in range(3):
 		# 	for j in range(3):
@@ -135,9 +137,60 @@ class RexEnv(gym.Env):
 		# 	print("")
 
 	def get_action_meanings(self):
-		print(list(Actions._directions.keys()))
+		return list(Actions._directions.keys())
 
-def grid2Img(gridState, imgWidth, imgHeight):
-	img = np.zeros((imgWidth, imgHeight), dtype=np.uint8)
-	return img
 
+def stateGrid2Img(gameBoard, foodData):
+	foodData = np.rot90(foodData)
+	foodData = foodData[1:(foodData.shape[0]-1), 1:(foodData.shape[1]-1)]
+	blue = [136, 28, 0]
+	for row in range(2, 169, 12):
+		for col in range(3, 140, 8):
+	# for row in range(foodData.shape[0]):
+	# 	for col in range(foodData.shape[1]):
+			if not foodData[row//12][col//8]:
+				if col > 70: col = col + 4
+				gameBoard[2+row:13+row, 3+col:10+col] = blue
+				# gameBoard[row*12+2:row*12+2+12, col*7+3:col*7+3+7] = blue
+	return gameBoard
+
+def initGameBoard():
+	# Background image
+	img = np.zeros((210, 160, 3), dtype=np.uint8)
+	orange = [111,111,228]
+	blue = [136, 28, 0]
+	img[1, :] = orange
+	img[170:172, :] = orange
+	img[1:171, 0:4] = orange
+	img[1:171, 156:160] = orange
+	img[2:171, 4:156] = blue
+	# Single food image
+	foodImg = np.zeros((12, 7, 3), dtype=np.uint8)
+	foodImg[3:5, 2:6] = orange
+	foodPattern = np.zeros((210, 160, 3), dtype=np.uint8)
+	for i in range(2, 169, 12):
+		for j in range(3, 140, 8):
+			if j > 70: j = j + 4
+			foodPattern[2+i:14+i, 3+j:10+j] = foodImg
+	return img+foodPattern
+
+
+# import cv2
+# import numpy as np
+
+# image = np.ones((300, 300, 3), np.uint8) * 255
+
+# pt1 = (150, 100)
+# pt2 = (100, 200)
+# pt3 = (200, 200)
+
+# cv2.circle(image, pt1, 2, (0,0,255), -1)
+# cv2.circle(image, pt2, 2, (0,0,255), -1)
+# cv2.circle(image, pt3, 2, (0,0,255), -1)
+
+# triangle_cnt = np.array( [pt1, pt2, pt3] )
+
+# cv2.drawContours(image, [triangle_cnt], 0, (0,255,0), -1)
+
+# cv2.imshow("image", image)
+# cv2.waitKey()
