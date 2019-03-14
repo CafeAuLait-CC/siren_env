@@ -32,7 +32,7 @@ class RexEnv(gym.Env):
 		self.action_space = spaces.Discrete(5)	# len(game.state.getLegalPacmanActions())
 		self.observation_space = spaces.Box(0, 255, (210, 160, 3), dtype=np.uint8)
 		self.gameBoard = initGameBoard()
-		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data))
+		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
 		# # create the game board -- Tic-Tac-Toe
 		# self.state = []
 		# for i in range(3):
@@ -77,7 +77,7 @@ class RexEnv(gym.Env):
 		self.game.rules.process(self.game.state, self.game)
 		self.game.numMoves += 1
 		self.game.display.finish()
-		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data))
+		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
 		self.reward = self.game.state.getScore()
 		self.done = self.game.gameOver
 		return [self.state, self.reward, self.done, self.info]
@@ -121,7 +121,7 @@ class RexEnv(gym.Env):
 		self.info = {}
 		self.reward = self.game.state.getScore()
 		self.gameBoard = initGameBoard()
-		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data))
+		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
 		return self.state
 		# for i in range(3):
 		# 	for j in range(3):
@@ -143,15 +143,57 @@ class RexEnv(gym.Env):
 		return list(Actions._directions.keys())
 
 
-def stateGrid2Img(gameBoard, foodData):
+def stateGrid2Img(gameBoard, foodData, pacman_pos):
 	foodData = np.rot90(foodData)
 	foodData = foodData[1:(foodData.shape[0]-1), 1:(foodData.shape[1]-1)]
 	blue = [136, 28, 0]
+	triangle_man = np.ones((11, 6, 3), np.uint8) * np.array(blue, dtype=np.uint8)
+	pt1 = (2, 3)
+	pt2 = (8, 0)
+	pt3 = (8, 6)
+	triangle = np.array( [pt1, pt2, pt3] )
+	cv2.drawContours(triangle_man, [triangle], 0, (0,255,0), -1)
+	# if pacman_pos.getDirection() == 'South':
+	# 	triangle_man = np.rot90(triangle_man)
+	# 	triangle_man = np.rot90(triangle_man)
+	# elif pacman_pos.getDirection() == 'East' or pacman_pos.getDirection() == 'West':
+	# 	pt1 = (0, 0)
+	# 	pt2 = (5, 7)
+	# 	pt3 = (10, 0)
+	# 	triangle_man = np.zeros((11, 7, 3), np.uint8) * 255
+	# 	triangle = np.array( [pt1, pt2, pt3] )
+	# 	cv2.drawContours(triangle_man, [triangle], 0, (0,255,0), -1)
+	# 	if pacman_pos.getDirection() == 'West':
+	# 		triangle_man = np.rot90(triangle_man)
+	# 		triangle_man = np.rot90(triangle_man)
+	# else:
+	# 	pass
+	pos = pacman_pos.getPosition()
+	pos_row = 14 - pos[1]
+	pos_col = pos[0]
 	for row in range(2, 169, 12):
-		for col in range(3, 140, 8):
+		for col in range(3, 149, 8):
 			if not foodData[row//12][col//8]:
-				if col > 70: col = col + 4
+				if col > 76: col = col - 1
 				gameBoard[2+row:13+row, 3+col:10+col] = blue
+	off_set = 0
+	if pos_col*7+7+off_set > 76:
+		off_set = 1
+	if pos_col*7+7+off_set > 93:
+		off_set = 2
+	if pos_col*7+7+off_set > 95:
+		off_set = 3
+	if pos_col*7+7+off_set > 97:
+		off_set = 3
+	if pos_col*7+7+off_set > 98:
+		off_set = 3
+	if pos_col*7+7+off_set > 105:
+		off_set = 5
+	if pos_col*7+7+off_set > 137:
+		off_set = 6
+	if pos_col*7+7+off_set > 140:
+		off_set = 7
+	gameBoard[pos_row*12+4:pos_row*12+15, pos_col*7+7+off_set:pos_col*7+13+off_set] = triangle_man #+ gameBoard[pos_row*12:pos_row*12+12, pos_col*8:pos_col*8+8]
 	return gameBoard
 
 def initGameBoard():
@@ -169,8 +211,8 @@ def initGameBoard():
 	foodImg[3:5, 2:6] = orange
 	foodPattern = np.zeros((210, 160, 3), dtype=np.uint8)
 	for i in range(2, 169, 12):
-		for j in range(3, 140, 8):
-			if j > 70: j = j + 4
+		for j in range(3, 149, 8):
+			if j > 76: j = j - 2
 			foodPattern[2+i:14+i, 3+j:10+j] = foodImg
 	return img+foodPattern
 
