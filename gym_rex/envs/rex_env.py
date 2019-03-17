@@ -27,6 +27,7 @@ class RexEnv(gym.Env):
 		self.game = rules.newGame(args['layout'], args['pacman'], args['ghosts'], gameDisplay, beQuiet, args['catchExceptions'])
 		self.game.numMoves = 0
 		self.done = self.game.gameOver
+		self.previousReward = 0
 		self.reward = self.game.state.getScore()
 		self.info = {}
 		self.action_space = spaces.Discrete(5)	# len(game.state.getLegalPacmanActions())
@@ -46,6 +47,7 @@ class RexEnv(gym.Env):
 		else:
 			action = 'West'
 		# action = list(Actions._directions.keys())[action]	# action format from number to string
+		self.previousReward = self.reward
 		self.game.moveHistory.append((self.game.startingIndex, action))
 		self.game.state = self.game.state.generateSuccessor(self.game.startingIndex, action)
 		self.game.display.update(self.game.state.data)
@@ -59,7 +61,7 @@ class RexEnv(gym.Env):
 			self.done = True
 			self.info['info'] = 'Failed to complete. Too many moves.'
 			self.info['numMoves'] = self.game.numMoves
-		return [self.state, self.reward, self.done, self.info]
+		return [self.state, self.reward - self.previousReward, self.done, self.info]
 
 	def reset(self):
 		args = readCommand() # Get game components based on input
