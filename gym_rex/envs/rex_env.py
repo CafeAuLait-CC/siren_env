@@ -57,11 +57,14 @@ class RexEnv(gym.Env):
 		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
 		self.reward = self.game.state.getScore()
 		self.done = self.game.gameOver
-		if self.game.numMoves > 1000:
+		if self.game.numMoves > 300:
 			self.done = True
 			self.info['info'] = 'Failed to complete. Too many moves.'
 			self.info['numMoves'] = self.game.numMoves
-		return [self.state, self.reward - self.previousReward, self.done, self.info]
+		rewardChanged = self.reward - self.previousReward
+		if rewardChanged < 0:
+			rewardChanged = 0
+		return [self.state, rewardChanged, self.done, self.info]
 
 	def reset(self):
 		args = readCommand() # Get game components based on input
@@ -74,6 +77,7 @@ class RexEnv(gym.Env):
 		self.game.numMoves = 0
 		self.done = self.game.gameOver
 		self.info = {}
+		self.previousReward = 0
 		self.reward = self.game.state.getScore()
 		self.gameBoard = initGameBoard()
 		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
