@@ -1,4 +1,4 @@
-# ReX-v0
+# Siren-v0
 My custom Gym enviroment for the [Re_X](https://github.com/AXU9513/Re_X) project.
 
 ## Requirements
@@ -15,8 +15,8 @@ pip install -e .
 In your Python script, do the following:
 ```
 import gym
-import gym_rex
-env = gym.make('rex-v0')
+import siren
+env = gym.make('Siren-v0')
 ```
 
 ## Credits

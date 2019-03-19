@@ -12,7 +12,7 @@ sys.path.append(dir)
 from pacman import *
 from game import Actions
 
-class RexEnv(gym.Env):
+class SirenEnv(gym.Env):
 	metadata = {'render.modes' : ['human']}
 
 	def __init__(self):
