@@ -1,6 +1,4 @@
-.DS_Store
-gym_rex.egg-info/
-gym_rex/.DS_Store
-gym_rex/__pycache__/
-gym_rex/envs/__pycache__/
+*.DS_Store
+siren.egg-info/
+*/__pycache__/
 *.pyc
