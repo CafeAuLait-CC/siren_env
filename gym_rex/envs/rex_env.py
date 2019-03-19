@@ -30,7 +30,7 @@ class RexEnv(gym.Env):
 		self.previousReward = 0
 		self.reward = self.game.state.getScore()
 		self.info = {}
-		self.action_space = spaces.Discrete(5)	# len(game.state.getLegalPacmanActions())
+		self.action_space = spaces.Discrete(5)	# len(self.unwrapped.get_action_meanings())
 		self.observation_space = spaces.Box(0, 255, (210, 160, 3), dtype=np.uint8)
 		self.gameBoard = initGameBoard()
 		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
@@ -48,7 +48,6 @@ class RexEnv(gym.Env):
 			action = 'West'
 		# action = list(Actions._directions.keys())[action]	# action format from number to string
 		self.previousReward = self.reward
-		self.game.moveHistory.append((self.game.startingIndex, action))
 		self.game.state = self.game.state.generateSuccessor(self.game.startingIndex, action)
 		self.game.display.update(self.game.state.data)
 		self.game.rules.process(self.game.state, self.game)
@@ -57,7 +56,7 @@ class RexEnv(gym.Env):
 		self.state = stateGrid2Img(self.gameBoard, np.array(self.game.state.data.food.data), self.game.state.data.agentStates[0])
 		self.reward = self.game.state.getScore()
 		self.done = self.game.gameOver
-		if self.game.numMoves > 300:
+		if self.game.numMoves > 500:
 			self.done = True
 			self.info['info'] = 'Failed to complete. Too many moves.'
 			self.info['numMoves'] = self.game.numMoves
@@ -84,11 +83,8 @@ class RexEnv(gym.Env):
 		return self.state
 
 	def render(self, mode='human', close=False):
-		# self.game.state.data.agentStates[0].getPosition()	# current pacman position
-		# print(self.game.state)
-		cv2.imshow("Recman - Score: " + str(self.reward), self.state)
+		cv2.imshow("Recman", self.state)
 		cv2.waitKey(10)
-		cv2.destroyAllWindows()
 
 	def get_action_meanings(self):
 		return list(Actions._directions.keys())
