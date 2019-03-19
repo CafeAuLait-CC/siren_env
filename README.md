@@ -1,5 +1,5 @@
 # Siren-v0
-My custom Gym enviroment for the [Re_X](https://github.com/AXU9513/Re_X) project.
+My custom Gym enviroment for the <del>[Re_X](https://github.com/AXU9513/Re_X)</del> project.
 
 ## Requirements
 - Python 3
