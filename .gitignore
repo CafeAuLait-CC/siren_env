@@ -2,3 +2,6 @@
 siren.egg-info/
 */__pycache__/
 *.pyc
+*.cxx
+*.so
+*SirenController.py
