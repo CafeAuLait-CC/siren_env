@@ -5,3 +5,4 @@ siren.egg-info/
 *.cxx
 *.so
 *SirenController.py
+siren/envs/src_cpp/boost/preprocessor/
