@@ -46,6 +46,14 @@ class SirenEnv(gym.Env):
 			action = 'East'
 		else:
 			action = 'West'
+		legalAction = self.game.state.getLegalPacmanActions()
+		if action not in legalAction:
+			self.game.numMoves += 1
+			if self.game.numMoves > 500:
+				self.done = True
+				self.info['info'] = 'Failed to complete. Too many moves.'
+				self.info['numMoves'] = self.game.numMoves
+			return [self.state, 0, self.done, self.info]
 		# action = list(Actions._directions.keys())[action]	# action format from number to string
 		self.previousReward = self.reward
 		self.game.state = self.game.state.generateSuccessor(self.game.startingIndex, action)
