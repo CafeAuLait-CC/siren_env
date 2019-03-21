@@ -2,13 +2,14 @@
 
 ## Pre-request
 - OpenCV 3
-- swig
-- Boost Preprocessor Library (already included in this project)
+- [swig](http://www.swig.org)
+- [Boost Preprocessor Library](https://www.boost.org)
 
-## Usage
-1. Add all .h file into my_module.i
-2. Add all .cpp file before '-o' in the second line in `compile`
-3. Run the command:
+## Install
+1. (If necessery) Copy `preprocessor` folder from boost into `src_cpp/boost/`
+2. Add all .h file into my_module.i
+3. Add all .cpp file before '-o' in the second line in `compile`
+4. Run the command:
 
 ```
 $ ./compile
@@ -18,9 +19,7 @@ $ ./compile
  
 - **GTImage**: Ground truth image class. A instance of GTImage class here is a small matrix (with 14 rows, 19 columns as default), each element has 3 channels (Using OpenCV Mat type CV_8UC3). When creating a GTImage instance, it reads the \*real\* ground truth image from file system, down sampling and processing it to form a block/cell based chess board. This chess board is later used to find possible actions and give reward for the deep reinforcement learning agent.
 
- The \*real\* ground truth image is a combination of OSM road centerline data and building
-    predictions from ICTNet (or other network architectures). Save these data into the chess
-    board as [building, road, preserved_channel].
+    The \*real\* ground truth image is a combination of OSM road centerline data and building predictions from ICTNet (or other network architectures). Save these data into the chess board as [building, road, preserved_channel].
  
 - **RGBImage**: RGB image class. This class is used to process the satellite imagery. When creating a instance of RGBImage class, it reads the satellite image from file system, down-sampling and do \f[some more\f] processing steps. At last, it generate a low resolution color image (170 x 160 pixels by default). This image is later feed into the deep neural network for training/testing (extract road centerlines).
  
