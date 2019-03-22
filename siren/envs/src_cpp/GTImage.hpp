@@ -20,14 +20,15 @@ public:
     // Initialize
     GTImage();
     GTImage(cv::Size cellSize, cv::Size pixelSize = cv::Size(160, 170));    // cv::Size(width, height)
-    void generateGTPattern(cv::Mat& gtImage);
+    void generateGTPattern();
     
     //
 //    void generateNextState();     // implement this function in RGBImage class
     
     
     cv::Mat cellImage;  // 3 channels, Vec3b (building, road, x)
-    cv::Mat pixelImage;
+    cv::Mat pixelImageBuilding;
+    cv::Mat pixelImageRoad;
 
 private:
     int numOfRemainPoints;

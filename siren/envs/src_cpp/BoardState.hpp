@@ -15,6 +15,14 @@
 #include "RGBImage.hpp"
 #include "GTImage.hpp"
 
+//
+// TODO: Go for 10 x 10 for cell size, 800 x 800 for pixel based patch size.
+// 1. divide the 4096 x 4096 image into 10 x 10 grids;
+// 2. determine color for each cell, median pool for rgb image, 70% threshold for road mask and building mask
+// 3. combine building mask and road mask into single matrix
+// 4. generatePatch to get patch from image. 80 x 80 cell resolution, 50% overlap (step size of 40 cells)
+//
+
 class BoardState {
 public:
     

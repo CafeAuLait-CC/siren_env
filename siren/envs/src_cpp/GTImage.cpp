@@ -10,15 +10,15 @@
 
 GTImage::GTImage() {
     this->cellImage = cv::Mat::zeros(cv::Size(19, 14), CV_8UC3);    // TODO: to be changed to imread()
-    generateGTPattern(this->cellImage);
+    generateGTPattern();
 }
 
 GTImage::GTImage(cv::Size cellSize, cv::Size pixelSize) {
     this->cellImage = cv::Mat::zeros(cellSize, CV_8UC3);    // TODO: to be changed to imread()
-    generateGTPattern(this->cellImage);
+    generateGTPattern();
 }
 
-void GTImage::generateGTPattern(cv::Mat& gtImage) {
+void GTImage::generateGTPattern() {
     // TODO: from ground truth to pattern
     
 }
