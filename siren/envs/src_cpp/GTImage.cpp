@@ -2,8 +2,8 @@
 //  GTImage.cpp
 //  Siren_Environment
 //
-//  Created by Alex Xu on 3/20/19.
-//  Copyright © 2019 Alex Xu. All rights reserved.
+//  Created by Alex on 3/20/19.
+//  Copyright © 2019 Pinjing [Alex] Xu. All rights reserved.
 //
 
 #include "GTImage.hpp"
