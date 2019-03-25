@@ -83,7 +83,6 @@ void BoardState::addYellowCell2Imagery(const cv::Point2i& position) {
 // Init all posible actions
 void BoardState::initActionList() {
     // TODO: modify to read from file
-    actionList.resize(9);
     this->actionList.push_back("Stop");
     this->actionList.push_back("North");
     this->actionList.push_back("South");

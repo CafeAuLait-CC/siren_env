@@ -12,3 +12,5 @@
 %include "RGBImage.hpp"
 %include "GTImage.hpp"
 %include "BoardState.hpp"
+
+%template(VectorString) std::vector<std::string>;
