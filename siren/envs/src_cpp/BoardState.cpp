@@ -158,7 +158,7 @@ bool BoardState::isDone() {
 
 void BoardState::reset(bool toCurrentImage) {
     // insert code here...
-    if (this->currentImageDone && !toCurrentImage) {
+    if (this->currentImageDone || toCurrentImage) {
         this->currentFileNameNum = getNewFileNameNum(); // Get a new random number
     }
     this->currentImageDone = false;
