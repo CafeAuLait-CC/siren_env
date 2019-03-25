@@ -9,16 +9,40 @@
 #include "GTImage.hpp"
 
 GTImage::GTImage() {
-    this->cellImage = cv::Mat::zeros(cv::Size(19, 14), CV_8UC3);    // TODO: to be changed to imread()
-    generateGTPattern();
+    std::cerr << "Nothing to initial!" << std::endl;;
+    exit(-1);
 }
 
-GTImage::GTImage(cv::Size cellSize, cv::Size pixelSize) {
-    this->cellImage = cv::Mat::zeros(cellSize, CV_8UC3);    // TODO: to be changed to imread()
-    generateGTPattern();
+GTImage::GTImage(std::string& fileName, cv::Size cellSize, cv::Size pixelSize) {
+    this->pixelImage = cv::imread(fileName);
+    if (!this->pixelImage.data) {
+        std::cerr << "Could not open ground truth image: " + fileName << std::endl;
+        exit(-1);
+    }
+    this->cellImage = cv::Mat::zeros(cv::Size(pixelSize.width/cellSize.width, pixelSize.height/cellSize.height), 0);
+    for (int i  = cellSize.height / 2; i < pixelImage.rows; i += cellSize.height) {
+        for (int j = cellSize.width / 2; j < pixelImage.cols; j += cellSize.width) {
+            cv::Vec3b value = pixelImage.at<cv::Vec3b>(i, j);
+            if (value == cv::Vec3b(0, 0, 0)) {
+                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 0;
+            } else if (value == cv::Vec3b(0, 255, 0)) {
+                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 1;
+            } else if (value == cv::Vec3b(255, 0, 0)) {
+                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 2;
+            } else {
+                std::cerr << "Ground truth image pixel value wrong: " << i << ", " << j << " " << value << std::endl;;
+                exit(-1);
+            }
+            
+        }
+    }
 }
 
-void GTImage::generateGTPattern() {
-    // TODO: from ground truth to pattern
-    
+cv::Mat GTImage::getPattern() {
+    return this->cellImage;
+}
+
+GTImage::~GTImage() {
+    this->cellImage = NULL;
+    this->pixelImage = NULL;
 }

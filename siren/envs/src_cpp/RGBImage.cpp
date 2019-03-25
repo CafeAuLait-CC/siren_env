@@ -9,11 +9,18 @@
 #include "RGBImage.hpp"
 
 RGBImage::RGBImage() {
-    std::cout << "No input file!" << std::endl;
+    std::cerr << "No input file!" << std::endl;
     exit(-1);
 }
 
 RGBImage::RGBImage(std::string fileName, cv::Size dstSize) {
-    this->rgbImage = cv::imread(fileName);
-    cv::resize(this->rgbImage, this->rgbImage, dstSize);    // TODO: need more process here
+    this->imagery = cv::imread(fileName);
+    if (!this->imagery.data) {
+        std::cerr << "Failed to load Imagery patch: " << fileName << std::endl;
+        exit(-1);
+    }
+}
+
+cv::Mat RGBImage::getImagery() {
+    return this->imagery;
 }

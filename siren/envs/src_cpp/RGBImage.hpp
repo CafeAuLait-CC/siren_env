@@ -12,14 +12,15 @@
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
+//#include <opencv2/imgproc.hpp>
 
 class RGBImage {
 public:
     RGBImage();
-    RGBImage(std::string fileName, cv::Size dstSize);
+    RGBImage(std::string fileName, cv::Size patchSize = cv::Size(200, 200));
+    cv::Mat getImagery();
     
-    cv::Mat rgbImage;
+    cv::Mat imagery;
 };
 
 #endif /* RGBImage_hpp */

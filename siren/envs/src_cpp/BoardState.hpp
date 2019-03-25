@@ -10,47 +10,97 @@
 #define BoardState_hpp
 
 #include <iostream>
+#include <fstream>
+#include <stdlib.h>
 #include <opencv2/core.hpp>
 
 #include "RGBImage.hpp"
 #include "GTImage.hpp"
-
-//
-// TODO: Go for 10 x 10 for cell size, 800 x 800 for pixel based patch size.
-// 1. divide the 4096 x 4096 image into 10 x 10 grids;
-// 2. determine color for each cell, median pool for rgb image, 70% threshold for road mask and building mask
-// 3. combine building mask and road mask into single matrix
-// 4. generatePatch to get patch from image. 80 x 80 cell resolution, 50% overlap (step size of 40 cells)
-//
 
 class BoardState {
 public:
     
     // Init state (read config from file, setup stuffs)
     BoardState();
+    cv::Mat getState(); // for debug
     
     // State operations
-    void getCurrentState(const RGBImage& rgbImg, GTImage& gtImg);
-    void getNextState(std::string action, const RGBImage& rgbImg, GTImage& gtImg);  // MARK: const RGBImage? I need to draw tracks on rgb, does it affect?
+    cv::Mat getCurrentState();
+    cv::Mat getNextState(std::string action);
     
     std::vector<std::string> getActionList();       // Get all actions
     std::vector<std::string> getLegalActions();     // Get legal actions
     
-    void isDone();
-    bool currentImageDone = false;
+    int getReward();    // Get current rewards
+    bool isDone();      // Check if the game is done
     
-    void reset(bool toCurrentImage);    // Ff done, reset the entire state.
+    void reset(bool toCurrentImage);    // If done, reset the entire state.
                                         // If toCurrentImage is true, reset using current image patch, otherwise, reset using next image patch.
     
 private:
-    RGBImage rgbImg;
-    GTImage gtImg;
+    
+    /** @brief Load configurations from file. Including file path, patch size, cell size, etc...
+     */
+    void readConfigFromFile();
+    
+    /** @brief Get all image file names from a text file. Each line in the .txt file is a image file name.
+     @param fileName The name of text file (with its path, for example: ../images/name_list.txt )
+     */
+    std::vector<std::string> getImageFileNames(std::string fileName);
+    
+    
+    // inits
+    
+    /** @brief Select the Nth image patch to initialize a new chessboard.
+     @param fileNameNum The patch at fileNameList[fileNameNum] will be used.
+     */
+    void initBoardState(int fileNameNum);
+    
+    /** @brief Initialize all possible actions and save them into a vector of strings. (std::vector<std::string> actionList)
+     */
+    void initActionList();
+    
+    /** @brief Random number generator used for patch sampling.
+     */
+    int getNewFileNameNum();
+    
+    /** @brief Set a location to start the progress. The first road cell from the top left corner of a patch is used.
+     */
+    void setStartLocation();
+    
+    /** @brief Check if a given action is a legal action.
+     A legal actions means this action won't make the agent go across a building.
+     @param action The action givin to the agent. One of ['Stop', 'North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW']
+     */
+    bool checkActionLegality(std::string action);
+    
+    /** @brief Draw a yellow cell at the visited cells (on RGB imagery).
+     @param position Draw the cell at this(current) position
+     */
+    void addYellowCell2Imagery(const cv::Point2i& position);
+    
+    /** @brief Apply action and return if the next step lies on road pixel, update "currentPosition" in the mean time.
+     @param action Draw the cell at this(current) position
+     */
+    bool applyAction(std::string action); //
+    
+    
+    std::string pathToGTImages;
+    std::string pathToImagery;
+    std::vector<std::string> fileNameListGT;
+    std::vector<std::string> fileNameListImagery;
     
     std::vector<std::string> actionList;
     cv::Point2i currentPosition;
     
-    cv::Mat state;  // Use pointer or not?
-    cv::Mat nextState;
+    cv::Mat imagery;
+    cv::Mat state;      // Use pointer or not?
+    cv::Size cellSize;
+    int stepSize = 1;   // not used yet
+    int currentFileNameNum = 0;
+    int reward = 0;
+    int remainingRoadPoints = 0;
+    bool currentImageDone = false;  // A flag used to decide if reset to a new patch or use the same patch
 };
 
 #endif /* BoardState_hpp */

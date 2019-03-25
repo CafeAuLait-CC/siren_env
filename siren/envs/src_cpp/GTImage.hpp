@@ -19,21 +19,22 @@ public:
     
     // Initialize
     GTImage();
-    GTImage(cv::Size cellSize, cv::Size pixelSize = cv::Size(160, 170));    // cv::Size(width, height)
-    void generateGTPattern();
+    GTImage(std::string& fileName, cv::Size cellSize = cv::Size(10, 10), cv::Size pixelSize = cv::Size(200, 200));    // cv::Size(width, height)
+//    void generateGTPattern();
     
     //
 //    void generateNextState();     // implement this function in RGBImage class
-    
+    cv::Mat getPattern();
+    ~GTImage();
     
     cv::Mat cellImage;  // 3 channels, Vec3b (building, road, x)
-    cv::Mat pixelImageBuilding;
-    cv::Mat pixelImageRoad;
+    cv::Mat pixelImage;
+//    cv::Mat pixelImageRoad;
 
 private:
-    int numOfRemainPoints;
-    cv::Point2i currentPosition;    // (row, col)
-    std::string actionList;
+//    int numOfRemainPoints;
+//    cv::Point2i currentPosition;    // (row, col)
+//    std::string actionList;
 };
 
 #endif /* GTImage_hpp */
