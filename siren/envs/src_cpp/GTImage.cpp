@@ -43,6 +43,5 @@ cv::Mat GTImage::getPattern() {
 }
 
 GTImage::~GTImage() {
-    this->cellImage = NULL;
-    this->pixelImage = NULL;
+    
 }
