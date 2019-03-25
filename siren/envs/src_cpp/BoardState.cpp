@@ -266,7 +266,7 @@ std::vector<std::string> BoardState::getImageFileNames(std::string fileName) {
         countLines++;
     }
     if (countLines == 0) {
-        std::cerr << "readFile2Vector: Nothing in file! (Wrong file name?)";
+        std::cerr << "readFile2Vector: Nothing in file! (Wrong file name?)" << std::endl;
         exit(-1);
     }
     sort(imageNames.begin(), imageNames.end());
