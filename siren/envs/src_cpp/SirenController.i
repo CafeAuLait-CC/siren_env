@@ -1,4 +1,4 @@
-%module sirenagent
+%module sirencontroller
 
 %include "opencv-swig/lib/opencv.i"
 %cv_instantiate_all_defaults
