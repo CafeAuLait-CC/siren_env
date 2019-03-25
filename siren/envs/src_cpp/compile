@@ -1,2 +1,2 @@
 swig -I/usr/local/include/ -c++ -python SirenController.i
-g++ -fPIC -shared sirenagent_wrap.cxx BoardState.cpp RGBImage.cpp GTImage.cpp -o _sirenagent.so -I/usr/include/python3.6m/ -I/usr/local/include/opencv2 -I./ -L/usr/local/lib -lopencv_core -lopencv_imgproc -lopencv_highgui 
+g++ -fPIC -shared SirenController_wrap.cxx BoardState.cpp RGBImage.cpp GTImage.cpp -o _sirencontroller.so -I/usr/include/python3.6m/ -I/usr/local/include/opencv2 -I./ -L/usr/local/lib -lopencv_core -lopencv_imgproc -lopencv_highgui 
