@@ -2,7 +2,7 @@
 My custom Gym enviroment for the <del>[Re_X](https://github.com/AXU9513/Re_X)</del> project.
 
 ## Requirements
-- Python 3
+- Python 3.6
 - [gym](https://gym.openai.com)
 - [OpenCV](https://opencv.org) for Python
 
@@ -20,4 +20,4 @@ env = gym.make('Siren-v0')
 ```
 
 ## Credits
-The code of the Pac-Man game is based on the course materials ([The Pac-Man Projects](http://ai.berkeley.edu/project_overview.html)) from UC Berkeley CS188 Intro to AI. 
+<del>The code of the Pac-Man game is based on the course materials ([The Pac-Man Projects](http://ai.berkeley.edu/project_overview.html)) from UC Berkeley CS188 Intro to AI.</del>

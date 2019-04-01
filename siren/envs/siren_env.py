@@ -51,15 +51,18 @@ class SirenEnv(gym.Env):
 		self.info = {}
 
 		rewardChanged = self.reward - self.previousReward
-		if rewardChanged < 0:
-			rewardChanged = 0
+		# if rewardChanged < 0:
+		# 	rewardChanged = 0
+		if self.reward < -2000:
+			self.done = True
+			self.info['info'] = "Too many wrong movements"
 		return [self.state, rewardChanged, self.done, self.info]
 
 	def reset(self):
 		if len(self.info) > 0:
-			self.board.reset(True)
-		else:
 			self.board.reset(False)
+		else:
+			self.board.reset(True)
 
 		self.state = np.array(self.board.getCurrentState())
 		self.reward = self.board.getReward()

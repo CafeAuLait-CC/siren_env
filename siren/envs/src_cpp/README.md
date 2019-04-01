@@ -3,7 +3,7 @@
 ## Pre-request
 - OpenCV 3
 - [swig](http://www.swig.org)
-- [Boost Preprocessor Library](https://www.boost.org)
+- [Boost Preprocessor Library](https://www.boost.org) (boost version 1.69.0)
 
 ## Install
 1. (If necessery) Copy `preprocessor` folder from boost into `src_cpp/boost/`
