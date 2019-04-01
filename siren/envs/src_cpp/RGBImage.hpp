@@ -20,6 +20,7 @@ public:
     RGBImage(std::string fileName, cv::Size patchSize = cv::Size(200, 200));
     cv::Mat getImagery();
     
+private:
     cv::Mat imagery;
 };
 

@@ -27,11 +27,12 @@ public:
     cv::Mat getPattern();
     ~GTImage();
     
-    cv::Mat cellImage;  // 3 channels, Vec3b (building, road, x)
-    cv::Mat pixelImage;
+    
 //    cv::Mat pixelImageRoad;
 
 private:
+    cv::Mat cellImage;  // 3 channels, Vec3b (building, road, x)
+    cv::Mat pixelImage;
 //    int numOfRemainPoints;
 //    cv::Point2i currentPosition;    // (row, col)
 //    std::string actionList;

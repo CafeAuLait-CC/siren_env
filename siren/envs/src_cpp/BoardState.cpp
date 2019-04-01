@@ -20,10 +20,12 @@ BoardState::BoardState() {
 // configurations
 void BoardState::readConfigFromFile() {
     std::string basePath = "/Users/alex/Documents/Concordia University/Project/Google Maps Data/Training Data/";
-    this->pathToGTImages = basePath + "gt_in_patches/";
-    this->fileNameListGT = getImageFileNames(basePath + "name_list_gt_in_patches.txt");
-    this->pathToImagery = basePath + "imagery_in_patches/";
-    this->fileNameListImagery = getImageFileNames(basePath + "name_list_imagery_in_patches.txt");
+    this->pathToGTImages = basePath + "gt_in_tiles/";
+    this->fileNameListGT = getImageFileNames(basePath + "name_list_building.txt");
+    this->pathToImagery = basePath + "imagery/";
+    this->fileNameListImagery = getImageFileNames(basePath + "name_list_imagery.txt");
+    
+    this->patchSize = cv::Size(200, 200);
 }
 
 // Chessboard initialization: background board(gt) + forground board(imagery for network)
@@ -34,7 +36,7 @@ void BoardState::initBoardState(int fileNameNum) {
     // Load image patch (rgb + gt) from file system
     RGBImage* rgbImg = new RGBImage(fileNameImagery);
     this->imagery = rgbImg->getImagery();
-    GTImage* gtImg = new GTImage(fileNameGT);
+    GTImage* gtImg = new GTImage(fileNameGT, cv::Size(10, 10), this->imagery.size());
     
     // Convert from pixel-based image to cell-based board
     /** Two options here
@@ -53,6 +55,8 @@ void BoardState::initBoardState(int fileNameNum) {
     cv::Size s_g = this->state.size();
     this->cellSize = cv::Size(s_i.width / s_g.width, s_i.height / s_g.height);
     
+    this->imageryPatch = cv::Mat::zeros(this->patchSize, CV_8UC3);
+    
     // Label visited cell using a yellow block. (Here is the first one, starting point)
     addYellowCell2Imagery(currentPosition);
     
@@ -66,7 +70,7 @@ void BoardState::initBoardState(int fileNameNum) {
     }
 }
 
-// This function is used to draw yellow lines(cells) on visited roads
+// This function is used to draw yellow cells on current position patch
 void BoardState::addYellowCell2Imagery(const cv::Point2i& position) {
     cv::Mat yellowCellChannel1 = cv::Mat::ones(this->cellSize, CV_8UC1) * 255;
     cv::Mat yellowCellChannel2 = cv::Mat::zeros(this->cellSize, CV_8UC1);
@@ -76,8 +80,15 @@ void BoardState::addYellowCell2Imagery(const cv::Point2i& position) {
     yellowCellData.push_back(yellowCellChannel1);
     cv::Mat yelloCell;
     cv::merge(yellowCellData, yelloCell);
-    yelloCell.copyTo(this->imagery(cv::Range(position.x * this->cellSize.height, (position.x + 1) * this->cellSize.height),
-                                   cv::Range(position.y * this->cellSize.width, (position.y + 1) * this->cellSize.width)));
+    
+    // Generate new current patch and draw yellow cell at center
+    int radius_row = this->imageryPatch.size().height / this->cellSize.height / 2;
+    int radius_col = this->imageryPatch.size().width / this->cellSize.width / 2;
+    this->imagery(cv::Range((position.x - radius_row) * this->cellSize.height, (position.x + radius_row) * this->cellSize.height),
+                  cv::Range((position.y - radius_col) * this->cellSize.width, (position.y + radius_col) * this->cellSize.width)).copyTo(this->imageryPatch) ;
+    
+    yelloCell.copyTo(this->imageryPatch(cv::Range(this->patchSize.height / 2 - cellSize.height / 2, this->patchSize.height / 2 + cellSize.height / 2),
+                                   cv::Range(this->patchSize.width / 2 - cellSize.width / 2, this->patchSize.width / 2 + cellSize.width / 2)));
 }
 
 // Init all posible actions
@@ -114,14 +125,14 @@ std::vector<std::string> BoardState::getLegalActions() {
 cv::Mat BoardState::getCurrentState() {
     // Wait...what?
     // No need to return chessboard state to others.
-    return this->imagery;
+    return this->imageryPatch;
 }
 
 // Calculate the next state with a specific action as input
 cv::Mat BoardState::getNextState(std::string action) {
     if (checkActionLegality(action)) {
         if (applyAction(action)) {  // If the step lies on a road cell
-            this->reward++;
+            this->reward += 10;
             this->remainingRoadPoints--;
         } else {
             this->reward--; // Deduction of rewards is optional
@@ -130,6 +141,7 @@ cv::Mat BoardState::getNextState(std::string action) {
     } else {
         // Illegal action, do nothing or reduce reward.
         this->reward -= 2;
+//        this->currentImageDone = true;
     }
     return this->imagery;
 }
@@ -277,11 +289,11 @@ std::vector<std::string> BoardState::getImageFileNames(std::string fileName) {
 // Set the start location in the chessboard, mark current position as 100
 void BoardState::setStartLocation() {
     bool isSet = false;
-    for (int i = 0; i < this->state.rows; i++) {
+    for (int i = 10; i < this->state.rows; i++) {
         if (isSet) {
             break;
         }
-        for (int j = 0; j < this->state.cols; j++) {
+        for (int j = 10; j < this->state.cols; j++) {
             if (this->state.at<uchar>(i, j) == 1) {
                 this->currentPosition = cv::Point2i(i, j);
                 isSet = true;

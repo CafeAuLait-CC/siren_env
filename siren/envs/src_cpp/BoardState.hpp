@@ -74,7 +74,7 @@ private:
      */
     bool checkActionLegality(std::string action);
     
-    /** @brief Draw a yellow cell at the visited cells (on RGB imagery).
+    /** @brief Draw a yellow cell at the visited cell (on RGB imagery patch around current position).
      @param position Draw the cell at this(current) position
      */
     void addYellowCell2Imagery(const cv::Point2i& position);
@@ -95,7 +95,9 @@ private:
     
     cv::Mat imagery;
     cv::Mat state;      // Use pointer or not?
-    cv::Size cellSize;
+    cv::Mat imageryPatch;    // The imagery patch around current position
+    cv::Size cellSize;  // basic unit in chessboard state
+    cv::Size patchSize; // patch size for the network
     int stepSize = 1;   // not used yet
     int currentFileNameNum = 0;
     int reward = 0;

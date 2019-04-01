@@ -24,16 +24,14 @@ GTImage::GTImage(std::string& fileName, cv::Size cellSize, cv::Size pixelSize) {
         for (int j = cellSize.width / 2; j < pixelImage.cols; j += cellSize.width) {
             cv::Vec3b value = pixelImage.at<cv::Vec3b>(i, j);
             if (value == cv::Vec3b(0, 0, 0)) {
-                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 0;
+                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 0;   // nothing
             } else if (value == cv::Vec3b(0, 255, 0)) {
-                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 1;
+                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 1;   // road
             } else if (value == cv::Vec3b(255, 0, 0)) {
-                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 2;
+                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 2;   // building
             } else {
-                // TODO: needs to be refined
-                // std::cerr << "Ground truth image pixel value wrong: " << i << ", " << j << " " << value << std::endl;;
-                // exit(-1);
-                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 2;
+                 std::cerr << "Ground truth image pixel value wrong: " << i << ", " << j << " " << value << std::endl;;
+                 exit(-1);
             }
             
         }
