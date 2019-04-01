@@ -31,7 +31,7 @@ GTImage::GTImage(std::string& fileName, cv::Size cellSize, cv::Size pixelSize) {
             } else if (value == cv::Vec3b(0, 255, 0)) {
                 cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 1;   // road
             } else if (value == cv::Vec3b(255, 0, 0)) {
-                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 2;   // building
+                cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 0;   // building
             } else {
                  std::cerr << "Ground truth image pixel value wrong: " << i << ", " << j << " " << value << std::endl;;
                  exit(-1);

@@ -78,6 +78,11 @@ private:
      @param position Draw the cell at this(current) position
      */
     void addYellowCell2Imagery(const cv::Point2i& position);
+
+    /** @brief Padding for imagery patches if it goes out of image tile boundary.
+     @param position Draw the cell at this(current) position
+     */
+    void paddingForImageryPatch(const cv::Point2i& position);
     
     /** @brief Apply action and return if the next step lies on road pixel, update "currentPosition" in the mean time.
      @param action Draw the cell at this(current) position
@@ -101,6 +106,7 @@ private:
     int stepSize = 1;   // not used yet
     int currentFileNameNum = 0;
     int reward = 0;
+    int totalNumRoadPoints = 0;
     int remainingRoadPoints = 0;
     bool currentImageDone = false;  // A flag used to decide if reset to a new patch or use the same patch
 };

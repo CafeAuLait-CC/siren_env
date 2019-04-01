@@ -68,6 +68,7 @@ void BoardState::initBoardState(int fileNameNum) {
             }
         }
     }
+    this->totalNumRoadPoints = this->remainingRoadPoints;
 }
 
 // This function is used to draw yellow cells on current position patch
@@ -78,17 +79,46 @@ void BoardState::addYellowCell2Imagery(const cv::Point2i& position) {
     yellowCellData.push_back(yellowCellChannel2);
     yellowCellData.push_back(yellowCellChannel1);
     yellowCellData.push_back(yellowCellChannel1);
-    cv::Mat yelloCell;
-    cv::merge(yellowCellData, yelloCell);
+    cv::Mat yellowCell;
+    cv::merge(yellowCellData, yellowCell);
+    
+    // Padding: zero padding at edges of imagery tile
+    paddingForImageryPatch(position);
+
+    // Only updating current patch, without draw yellow box at center
+    // yellowCell.copyTo(this->imageryPatch(cv::Range(this->patchSize.height / 2 - cellSize.height / 2, this->patchSize.height / 2 + cellSize.height / 2),
+                                   // cv::Range(this->patchSize.width / 2 - cellSize.width / 2, this->patchSize.width / 2 + cellSize.width / 2)));
+}
+
+void BoardState::paddingForImageryPatch(const cv::Point2i& position) {
     
     // Generate new current patch and draw yellow cell at center
     int radius_row = this->imageryPatch.size().height / this->cellSize.height / 2;
     int radius_col = this->imageryPatch.size().width / this->cellSize.width / 2;
-    this->imagery(cv::Range((position.x - radius_row) * this->cellSize.height, (position.x + radius_row) * this->cellSize.height),
-                  cv::Range((position.y - radius_col) * this->cellSize.width, (position.y + radius_col) * this->cellSize.width)).copyTo(this->imageryPatch) ;
+
+    int pad_up = 0;
+    int pad_left = 0;
+    int x_up = (position.x - radius_row) * this->cellSize.height;
+    int x_down = (position.x + radius_row) * this->cellSize.height;
+    int y_left = (position.y - radius_col) * this->cellSize.width;
+    int y_right = (position.y + radius_col) * this->cellSize.width;
     
-    yelloCell.copyTo(this->imageryPatch(cv::Range(this->patchSize.height / 2 - cellSize.height / 2, this->patchSize.height / 2 + cellSize.height / 2),
-                                   cv::Range(this->patchSize.width / 2 - cellSize.width / 2, this->patchSize.width / 2 + cellSize.width / 2)));
+    if (x_up < 0) {
+        pad_up = x_up * -1;
+        x_up = 0;
+    } else if (x_down > this->imagery.rows - 1) {
+        x_down = this->imagery.rows - 1;
+    }
+    if (y_left < 0) {
+        pad_left = y_left * -1;
+        y_left = 0;
+    } else if (y_right > this->imagery.cols - 1) {
+        y_right = this->imagery.cols - 1;
+    }
+
+    this->imageryPatch = cv::Mat::zeros(this->imageryPatch.size(), this->imageryPatch.type());
+    this->imagery(cv::Range(x_up, x_down), cv::Range(y_left, y_right)).copyTo(
+        this->imageryPatch(cv::Range(pad_up, this->imageryPatch.rows), cv::Range(pad_left, this->imageryPatch.cols)));
 }
 
 // Init all posible actions
@@ -131,7 +161,7 @@ cv::Mat BoardState::getCurrentState() {
 // Calculate the next state with a specific action as input
 cv::Mat BoardState::getNextState(std::string action) {
     if (checkActionLegality(action)) {
-        if (applyAction(action)) {  // If the step lies on a road cell
+        if (applyAction(action)) {  // If the step lies on an unvisited road cell
             this->reward += 10;
             this->remainingRoadPoints--;
         } else {
@@ -140,10 +170,9 @@ cv::Mat BoardState::getNextState(std::string action) {
         addYellowCell2Imagery(currentPosition);     // Label visited cells
     } else {
         // Illegal action, do nothing or reduce reward.
-        this->reward -= 2;
-//        this->currentImageDone = true;
+        this->reward -= 50;
     }
-    return this->imagery;
+    return this->imageryPatch;
 }
 
 // Return current reward.
@@ -161,7 +190,7 @@ bool BoardState::isDone() {
         2. Most road cells have been visited.
      */
     bool done = false;
-    if (remainingRoadPoints == 0) {
+    if (float(remainingRoadPoints) / float(totalNumRoadPoints) < 0.1) {   // Using option 2
         done = true;
         currentImageDone = true;
     }
@@ -185,35 +214,35 @@ bool BoardState::checkActionLegality(std::string action) {
     int currentX = currentPosition.x;
     int currentY = currentPosition.y;
     if (action == "North") {
-        if (currentX == 0 || this->state.at<uchar>(currentX-1, currentY) == 2) {
+        if (currentX == 0 || this->state.at<uchar>(currentX-1, currentY) == 0) {
             isLegal = false;
         }
     } else if (action == "South") {
-        if (currentX == (this->state.rows - 1) || this->state.at<uchar>(currentX+1, currentY) == 2) {
+        if (currentX == (this->state.rows - 1) || this->state.at<uchar>(currentX+1, currentY) == 0) {
             isLegal = false;
         }
     } else if (action == "East") {
-        if (currentY == (this->state.cols - 1) || this->state.at<uchar>(currentX, currentY+1) == 2) {
+        if (currentY == (this->state.cols - 1) || this->state.at<uchar>(currentX, currentY+1) == 0) {
             isLegal = false;
         }
     } else if (action == "West") {
-        if (currentY == 0 || this->state.at<uchar>(currentX, currentY-1) == 2) {
+        if (currentY == 0 || this->state.at<uchar>(currentX, currentY-1) == 0) {
             isLegal = false;
         }
     } else if (action == "NE") {
-        if (currentX == 0 || currentY == (this->state.cols - 1) || this->state.at<uchar>(currentX-1, currentY+1) == 2) {
+        if (currentX == 0 || currentY == (this->state.cols - 1) || this->state.at<uchar>(currentX-1, currentY+1) == 0) {
             isLegal = false;
         }
     } else if (action == "NW") {
-        if (currentX == 0 || currentY == 0 || this->state.at<uchar>(currentX-1, currentY-1) == 2) {
+        if (currentX == 0 || currentY == 0 || this->state.at<uchar>(currentX-1, currentY-1) == 0) {
             isLegal = false;
         }
     } else if (action == "SE") {
-        if (currentX == (this->state.rows - 1) || currentY == (this->state.cols - 1) || this->state.at<uchar>(currentX+1, currentY+1) == 2) {
+        if (currentX == (this->state.rows - 1) || currentY == (this->state.cols - 1) || this->state.at<uchar>(currentX+1, currentY+1) == 0) {
             isLegal = false;
         }
     } else if (action == "SW") {
-        if (currentX == (this->state.rows - 1) || currentY == 0 || this->state.at<uchar>(currentX+1, currentY-1) == 2) {
+        if (currentX == (this->state.rows - 1) || currentY == 0 || this->state.at<uchar>(currentX+1, currentY-1) == 0) {
             isLegal = false;
         }
     } else if (action == "Stop") {
@@ -230,8 +259,8 @@ bool BoardState::checkActionLegality(std::string action) {
 // and return if the new currentPosition is on a road cell
 // the agent give rewards according to this returned value
 bool BoardState::applyAction(std::string action) {
-    this->state.at<uchar>(currentPosition.x, currentPosition.y) = 0;    // Change the value of agent's current position from 100 to 0,
-                                                                        // 100 represents the current position
+    this->state.at<uchar>(currentPosition.x, currentPosition.y) = 3;    // Change the value of agent's current position from 100 to 3,
+                                                                        // 100 represents the current position, 3 means this position has been visited before
     bool isRoad = false;
     if (action == "North") {
         currentPosition.x--;
