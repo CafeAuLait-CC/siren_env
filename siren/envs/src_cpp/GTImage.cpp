@@ -20,8 +20,8 @@ GTImage::GTImage(std::string& fileName, cv::Size cellSize, cv::Size pixelSize) {
         exit(-1);
     }
     this->cellImage = cv::Mat::zeros(cv::Size(pixelSize.width/cellSize.width, pixelSize.height/cellSize.height), 0);
-    for (int i  = cellSize.height / 2; i < pixelImage.rows; i += cellSize.height) {
-        for (int j = cellSize.width / 2; j < pixelImage.cols; j += cellSize.width) {
+    for (int i  = cellSize.height / 2; i < pixelImage.rows - cellSize.height; i += cellSize.height) {   // Mark: stop early to fix an weird issue in python
+        for (int j = cellSize.width / 2; j < pixelImage.cols - cellSize.width; j += cellSize.width) {
             cv::Vec3b value = pixelImage.at<cv::Vec3b>(i, j);
             if (value == cv::Vec3b(0, 0, 0)) {
                 cellImage.at<uchar>(i/cellSize.height, j/cellSize.width) = 0;   // nothing
