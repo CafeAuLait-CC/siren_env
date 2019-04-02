@@ -74,6 +74,12 @@ private:
      */
     bool checkActionLegality(std::string action);
     
+    /** @brief Check the two neighbors along the direction that perpendicular to the action direction.
+     If any of the two neighbors is road cell, return true.
+     @param action The action givin to the agent. One of ['North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW']. It's different than checkActionLegality() !
+     */
+    bool checkMoveDirectionNeighbors(cv::Point2i prevPosition, const std::string& action);
+    
     /** @brief Draw a yellow cell at the visited cell (on RGB imagery patch around current position).
      @param position Draw the cell at this(current) position
      */
