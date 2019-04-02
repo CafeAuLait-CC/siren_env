@@ -40,8 +40,8 @@ class SirenEnv(gym.Env):
 			self.info['info'] = 'Failed to complete. Too many moves.'
 			self.info['numMoves'] = self.numMoves
 
-		if action not in legalAction:
-			return [self.state, 0, self.done, self.info]
+		# if action not in legalAction:
+		# 	return [self.state, -50, self.done, self.info]
 
 		self.previousReward = self.reward
 
@@ -53,7 +53,7 @@ class SirenEnv(gym.Env):
 		rewardChanged = self.reward - self.previousReward
 		# if rewardChanged < 0:
 		# 	rewardChanged = 0
-		if self.reward < -2000:
+		if self.reward < -200:
 			self.done = True
 			self.info['info'] = "Too many wrong movements"
 		return [self.state, rewardChanged, self.done, self.info]

@@ -97,7 +97,9 @@ void BoardState::paddingForImageryPatch(const cv::Point2i& position) {
     int radius_col = this->imageryPatch.size().width / this->cellSize.width / 2;
 
     int pad_up = 0;
+    int pad_down = 0;
     int pad_left = 0;
+    int pad_right = 0;
     int x_up = (position.x - radius_row) * this->cellSize.height;
     int x_down = (position.x + radius_row) * this->cellSize.height;
     int y_left = (position.y - radius_col) * this->cellSize.width;
@@ -107,18 +109,20 @@ void BoardState::paddingForImageryPatch(const cv::Point2i& position) {
         pad_up = x_up * -1;
         x_up = 0;
     } else if (x_down > this->imagery.rows - 1) {
-        x_down = this->imagery.rows - 1;
+        pad_down = x_down - this->imagery.rows;
+        x_down = this->imagery.rows;
     }
     if (y_left < 0) {
         pad_left = y_left * -1;
         y_left = 0;
     } else if (y_right > this->imagery.cols - 1) {
-        y_right = this->imagery.cols - 1;
+        pad_right = y_right - this->imagery.cols;
+        y_right = this->imagery.cols;
     }
 
     this->imageryPatch = cv::Mat::zeros(this->imageryPatch.size(), this->imageryPatch.type());
     this->imagery(cv::Range(x_up, x_down), cv::Range(y_left, y_right)).copyTo(
-        this->imageryPatch(cv::Range(pad_up, this->imageryPatch.rows), cv::Range(pad_left, this->imageryPatch.cols)));
+        this->imageryPatch(cv::Range(pad_up, this->imageryPatch.rows - pad_down), cv::Range(pad_left, this->imageryPatch.cols - pad_right)));
 }
 
 // Init all posible actions
