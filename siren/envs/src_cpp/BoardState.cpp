@@ -36,7 +36,9 @@ void BoardState::initBoardState(int fileNameNum) {
     
     // Load image patch (rgb + gt) from file system
     RGBImage* rgbImg = new RGBImage(fileNameImagery);
-    this->imagery = rgbImg->getImagery();
+    // this->imagery = rgbImg->getImagery();        // See the comment below!
+    rgbImg->getImagery().copyTo(this->imagery);
+    delete rgbImg;
     GTImage* gtImg = new GTImage(fileNameGT, cv::Size(10, 10), this->imagery.size());
     
     // Convert from pixel-based image to cell-based board
@@ -44,10 +46,13 @@ void BoardState::initBoardState(int fileNameNum) {
         1. this->state = gtImg->getPattern(); without delete     --> use reference,
         2. gtImg->getPattern().copyTo(this->state) with delete   --> copy data.
         Becareful with the difference here!
+
+        !! UPDATE: Should use option 2, otherwise it will cause problem in python!
+                   Same with the 'rgbImg' above.
      */
-    this->state = gtImg->getPattern();
-//    gtImg->getPattern().copyTo(this->state);
-//    delete gtImg;
+    // this->state = gtImg->getPattern();
+   gtImg->getPattern().copyTo(this->state);
+   delete gtImg;
 
     setStartLocation();     // Set a start cell for the agent. (Choose the first road cell as start point)
     
