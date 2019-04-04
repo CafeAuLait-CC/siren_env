@@ -90,10 +90,11 @@ private:
      */
     void paddingForImageryPatch(const cv::Point2i& position);
     
-    /** @brief Apply action and return if the next step lies on road pixel, update "currentPosition" in the mean time.
+    /** @brief Apply action and return the type of the next cell, update "currentPosition" in the mean time.
      @param action Draw the cell at this(current) position
+     @return type of the next cell, one of "VisitedRoad", "UnvisitedRoad", "RoadNeighbor".
      */
-    bool applyAction(std::string action); //
+    std::string applyAction(std::string action); //
     
     
     std::string pathToGTImages;

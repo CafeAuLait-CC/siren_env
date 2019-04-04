@@ -32,7 +32,6 @@ void BoardState::readConfigFromFile() {
 void BoardState::initBoardState(int fileNameNum) {
     std::string fileNameImagery = this->pathToImagery + this->fileNameListImagery[fileNameNum];
     std::string fileNameGT = this->pathToGTImages + this->fileNameListGT[fileNameNum];
-    std::cout << "Current image is: " << this->fileNameListGT[fileNameNum] << std::endl;
     
     // Load image patch (rgb + gt) from file system
     RGBImage* rgbImg = new RGBImage(fileNameImagery);
@@ -136,13 +135,13 @@ void BoardState::initActionList() {
     // TODO: modify to read from file
     this->actionList.push_back("Stop");
     this->actionList.push_back("North");
-    this->actionList.push_back("South");
-    this->actionList.push_back("East");
-    this->actionList.push_back("West");
     this->actionList.push_back("NE");
+    this->actionList.push_back("East");
     this->actionList.push_back("SE");
-    this->actionList.push_back("NW");
+    this->actionList.push_back("South");
     this->actionList.push_back("SW");
+    this->actionList.push_back("West");
+    this->actionList.push_back("NW");
 }
 
 // Return all posible actions
@@ -171,10 +170,12 @@ cv::Mat BoardState::getCurrentState() {
 // Calculate the next state with a specific action as input
 cv::Mat BoardState::getNextState(std::string action) {
     if (checkActionLegality(action)) {
-        if (applyAction(action)) {  // If the step lies on an unvisited road cell
+        if (applyAction(action) == "UnvisitedRoad") {       // If the step lies on an unvisited road cell
             this->reward += 10;
             this->remainingRoadPoints--;
-        } else {
+        } else if (applyAction(action) == "VisitedRoad") {  // If the step lies on a visited road cell
+            this->reward += 5;
+        } else {                                            // If the step lies on a neighbor of road cell
             this->reward--; // Deduction of rewards is optional
         }
         addYellowCell2Imagery(currentPosition);     // Label visited cells
@@ -328,12 +329,12 @@ bool BoardState::checkActionLegality(std::string action) {
 }
 
 // Apply an action, update currentPosition,
-// and return if the new currentPosition is on a road cell
+// and return the type of the new currentPosition cell
 // the agent give rewards according to this returned value
-bool BoardState::applyAction(std::string action) {
+std::string BoardState::applyAction(std::string action) {
     this->state.at<uchar>(currentPosition.x, currentPosition.y) = 3;    // Change the value of agent's current position from 100 to 3,
                                                                         // 100 represents the current position, 3 means this position has been visited before
-    bool isRoad = false;
+    std::string  cellType = "";
     if (action == "North") {
         currentPosition.x--;
     } else if (action == "South") {
@@ -361,10 +362,14 @@ bool BoardState::applyAction(std::string action) {
         exit(-1);
     }
     if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 1) {
-        isRoad = true;
+        cellType = "UnvisitedRoad";
+    } else if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 3) {
+        cellType = "VisitedRoad";
+    } else {
+        cellType = "RoadNeighbor";
     }
     this->state.at<uchar>(currentPosition.x, currentPosition.y) = 100;  // Update agent's current position
-    return isRoad;
+    return cellType;
 }
 
 // Get all image file names from a text file -- name_list_xxx.txt

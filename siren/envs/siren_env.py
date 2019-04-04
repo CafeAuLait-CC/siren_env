@@ -76,7 +76,7 @@ class SirenEnv(gym.Env):
 
 	def render(self, mode='human', close=False):
 		cv2.imshow("Test Agent", self.state)
-		cv2.waitKey(10)
+		cv2.waitKey(50)
 
 	def get_action_meanings(self):
 		return list(self.board.getActionList())
