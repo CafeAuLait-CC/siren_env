@@ -48,6 +48,7 @@ GTImage::GTImage(std::string& fileName, cv::Size cellSize, cv::Size pixelSize) {
             cellImage.at<uchar>(i, cellImage.cols - 1) = 4;
         } else {        // the first and last row, label all pixel as 4
             cv::Mat allOnesRow = cv::Mat::ones(1, cellImage.cols, 0) * 4;
+            allOnesRow.copyTo(cellImage(cv::Range(0, 1), cv::Range(0, cellImage.cols)));
             allOnesRow.copyTo(cellImage(cv::Range(cellImage.rows - 1, cellImage.rows), cv::Range(0, cellImage.cols)));
         }
     }
