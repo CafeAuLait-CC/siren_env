@@ -319,7 +319,7 @@ bool BoardState::checkActionLegality(std::string action) {
             isLegal = false;
         }
     } else if (action == "Stop") {
-        ; // do nothing
+        isLegal = false; // do not allow 'stop' action anymore
     } else {
         std::cerr << "Wrong action: " + action << std::endl;
         exit(-1);
@@ -355,8 +355,6 @@ std::string BoardState::applyAction(std::string action) {
     } else if (action == "SW") {
         currentPosition.x++;
         currentPosition.y--;
-    } else if (action == "Stop") {
-        // do nothing
     } else {
         std::cerr << "Wrong action: " + action << std::endl;
         exit(-1);
