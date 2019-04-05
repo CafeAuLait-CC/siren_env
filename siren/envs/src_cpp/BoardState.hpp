@@ -72,33 +72,38 @@ private:
     
     /** @brief Check if a given action is a legal action.
      A legal actions means this action won't make the agent go across a building.
-     @param action The action givin to the agent. One of ['Stop', 'North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW']
-     @return true if it is a legal action.
+     @param action The action givin to the agent. One of ['Stop', 'North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW'].
+     @param nextPosition The destination position after applying the given action.
+     @return true and output the next position if it is a legal action.
      */
-    bool checkActionLegality(std::string action);
+    bool checkActionLegality(std::string action, cv::Point2i& nextPosition);
     
     /** @brief Check the two neighbors along the direction that perpendicular to the action direction.
      If any of the two neighbors is road cell, return true.
-     @param action The action givin to the agent. One of ['North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW']. It's different than checkActionLegality() !
+     @param prevPosition The source position before action.
+     @param nextPosition The destination position after action.
      @return true if at least one of the three cells in the moving direction is road cell.
      */
-    bool checkMoveDirectionNeighbors(cv::Point2i prevPosition, const std::string& action);
+    bool checkMoveDirectionNeighbors(const cv::Point2i& prevPosition, const cv::Point2i& nextPosition);
     
-    /** @brief Draw a yellow cell at the visited cell (on RGB imagery patch around current position).
-     @param position Draw the cell at this(current) position
+    /** @brief Calculate the neighbors of next cell when moving from current cell.
+     @param prevPosition The source position (cell) before moving (currentPosition).
+     @param nextPosition The destination cell after moving.
+     @return Vector of cv::Point2i, contains 2 or 3 points (nextPosition and its neighbor(s))
      */
-    void addYellowCell2Imagery(const cv::Point2i& position);
+    std::vector<cv::Point2i> getNeighbors(const cv::Point2i& prevPosition, const cv::Point2i& nextPosition);
+    
 
     /** @brief Padding for imagery patches if it goes out of image tile boundary.
-     @param position Draw the cell at this(current) position
+     @param position zero padding the image patch around (current) position.
      */
     void paddingForImageryPatch(const cv::Point2i& position);
     
     /** @brief Apply action and return the type of the next cell, update "currentPosition" in the mean time.
-     @param action Draw the cell at this(current) position
+     @param nextPosition Update current position to next position
      @return Type of the next cell, one of "VisitedRoad", "UnvisitedRoad", "RoadNeighbor", "TravelPath".
      */
-    std::string applyAction(std::string action); //
+    std::string applyAction(const cv::Point2i& nextPosition);
     
     
     std::string pathToGTImages;

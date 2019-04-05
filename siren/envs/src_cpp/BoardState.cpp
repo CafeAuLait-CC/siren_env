@@ -63,7 +63,7 @@ void BoardState::initBoardState(int fileNameNum) {
     this->imageryPatch = cv::Mat::zeros(this->patchSize, CV_8UC3);
     
     // Label visited cell using a yellow block. (Here is the first one, starting point)
-    addYellowCell2Imagery(currentPosition);
+    paddingForImageryPatch(currentPosition);
     
     // Count number of road cells
     for (int i = 0; i < this->state.rows; i++) {
@@ -76,25 +76,7 @@ void BoardState::initBoardState(int fileNameNum) {
     this->totalNumRoadPoints = this->remainingRoadPoints;
 }
 
-// This function is used to draw yellow cells on current position patch
-void BoardState::addYellowCell2Imagery(const cv::Point2i& position) {
-    cv::Mat yellowCellChannel1 = cv::Mat::ones(this->cellSize, CV_8UC1) * 255;
-    cv::Mat yellowCellChannel2 = cv::Mat::zeros(this->cellSize, CV_8UC1);
-    std::vector<cv::Mat> yellowCellData;
-    yellowCellData.push_back(yellowCellChannel2);
-    yellowCellData.push_back(yellowCellChannel1);
-    yellowCellData.push_back(yellowCellChannel1);
-    cv::Mat yellowCell;
-    cv::merge(yellowCellData, yellowCell);
-    
-    // Padding: zero padding at edges of imagery tile
-    paddingForImageryPatch(position);
-
-    // Comment out the next line to only updating current patch, without draw yellow box at center
-    // yellowCell.copyTo(this->imageryPatch(cv::Range(this->patchSize.height / 2 - cellSize.height / 2, this->patchSize.height / 2 + cellSize.height / 2),
-                                   // cv::Range(this->patchSize.width / 2 - cellSize.width / 2, this->patchSize.width / 2 + cellSize.width / 2)));
-}
-
+// Padding: zero padding at edges of imagery tile
 void BoardState::paddingForImageryPatch(const cv::Point2i& position) {
     
     // Generate new current patch and draw yellow cell at center
@@ -152,8 +134,9 @@ std::vector<std::string> BoardState::getActionList() {
 // Return only legal actions at current state
 std::vector<std::string> BoardState::getLegalActions() {
     std::vector<std::string> legalActions;
+    cv::Point2i tempPoint;      // tempPoint is useless here, just to fit into the parameters of checkActionLegality() function
     for (int i = 0; i < this->actionList.size(); i++) {
-        if (checkActionLegality(this->actionList[i])) {
+        if (checkActionLegality(this->actionList[i], tempPoint)) {
             legalActions.push_back(this->actionList[i]);
         }
     }
@@ -169,8 +152,12 @@ cv::Mat BoardState::getCurrentState() {
 
 // Calculate the next state with a specific action as input
 cv::Mat BoardState::getNextState(std::string action) {
-    if (checkActionLegality(action)) {
-        std::string nextCellType = applyAction(action);    // Apply the action, return the next cell Type
+    cv::Point2i nextPosition = cv::Point2i(-1, -1);
+    if (checkActionLegality(action, nextPosition)) {
+        if (nextPosition == cv::Point2i(-1, -1)) {
+            std::cerr << "getNextState: Illegal action: " << action << " from " << currentPosition << " to " << nextPosition << std::endl;
+        }
+        std::string nextCellType = applyAction(nextPosition);    // Apply the action, return the next cell Type
         if (nextCellType == "UnvisitedRoad") {       // If the step lies on an unvisited road cell
             this->reward += 10;
             this->remainingRoadPoints--;
@@ -181,7 +168,7 @@ cv::Mat BoardState::getNextState(std::string action) {
         } else {                                            // If the step lies on a neighbor of road cell
             this->reward--; // Deduction of rewards is optional
         }
-        addYellowCell2Imagery(currentPosition);     // Label visited cells
+        paddingForImageryPatch(currentPosition);
     } else {
         // Illegal action, do nothing or reduce reward.
         this->reward -= 50;
@@ -224,46 +211,10 @@ void BoardState::reset(bool toCurrentImage) {
 
 // Check the two neighbors along the direction that perpendicular to the action direction
 // If any of the two neighbors is road cell, return true.
-bool BoardState::checkMoveDirectionNeighbors(cv::Point2i nextPosition, const std::string& action) {
+bool BoardState::checkMoveDirectionNeighbors(const cv::Point2i& prevPosition, const cv::Point2i& nextPosition) {
     bool hasRoadNeighbor = false;
     std::vector<cv::Point2i> threeNeighbours;
-    threeNeighbours.push_back(nextPosition);
-    
-    // Collect two neighbors of nextPosition
-    if (action == "North" || action == "South") {
-        if (nextPosition.y == 0) {      // nextPosition is on the left edge
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y+1));
-        } else if (nextPosition.y == this->state.cols-1) {  // nextPosition is on the right edge
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y-1));
-        } else {
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y+1));
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y-1));
-        }
-    } else if (action == "East" || action == "West") {
-        if (nextPosition.x == 0) {      // nextPosition is on the upper edge
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x+1, nextPosition.y));
-        } else if (nextPosition.x == this->state.rows-1) {  // nextPosition is on the bottom edge
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x-1, nextPosition.y));
-        } else {
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x+1, nextPosition.y));
-            threeNeighbours.push_back(cv::Point2i(nextPosition.x-1, nextPosition.y));
-        }
-    } else if (action == "NE") {
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y-1));
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x+1, nextPosition.y));
-    } else if (action == "NW") {
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y+1));
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x+1, nextPosition.y));
-    } else if (action == "SE") {
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y-1));
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x-1, nextPosition.y));
-    } else if (action == "SW") {
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x, nextPosition.y+1));
-        threeNeighbours.push_back(cv::Point2i(nextPosition.x-1, nextPosition.y));
-    } else {
-        std::cerr << "checkMoveDirectionNeighbors: Impossible action: " + action << std::endl;
-        exit(-1);
-    }
+    threeNeighbours = getNeighbors(prevPosition, nextPosition);
     
     // Check if the three points contains road
     for (int i = 0; i < threeNeighbours.size(); i++) {
@@ -272,54 +223,97 @@ bool BoardState::checkMoveDirectionNeighbors(cv::Point2i nextPosition, const std
             break;
         }
     }
-    
     return hasRoadNeighbor;
 }
 
+// Calculate neighbors of nextPosition
+std::vector<cv::Point2i> BoardState::getNeighbors(const cv::Point2i& prevPosition, const cv::Point2i& nextPosition) {
+    std::vector<cv::Point2i> neighbors;
+    neighbors.push_back(nextPosition);  // careful with the & reference here!
+    cv::Point2i neighbor1;
+    cv::Point2i neighbor2;
+    if (prevPosition.x == nextPosition.x || prevPosition.y == nextPosition.y) { // relation between prev and next is N, E, S, W
+        cv::Point2i move = nextPosition - prevPosition;
+        neighbor1 = nextPosition + cv::Point2i(move.y, move.x);
+        neighbor2 = nextPosition - cv::Point2i(move.y, move.x);
+    } else {        // relation between prev and next is NE, SE, NW, SW
+        neighbor1 = cv::Point2i(prevPosition.x, nextPosition.y);
+        neighbor2 = cv::Point2i(nextPosition.x, prevPosition.y);
+    }
+    
+    // Boundary check
+    if (neighbor1.x >= 0 && neighbor1.x < this->state.rows &&
+        neighbor1.y >= 0 && neighbor1.y < this->state.cols) {
+        neighbors.push_back(neighbor1);
+    }
+    if (neighbor2.x >= 0 && neighbor2.x < this->state.rows &&
+        neighbor2.y >= 0 && neighbor2.y < this->state.cols) {
+        neighbors.push_back(neighbor2);
+    }
+    return neighbors;
+}
+
+
 // Check if a givin action is legal action - no crossing buildings
-bool BoardState::checkActionLegality(std::string action) {
+bool BoardState::checkActionLegality(std::string action, cv::Point2i& nextPosition) {
     bool isLegal = true;
     int currentX = currentPosition.x;
     int currentY = currentPosition.y;
     if (action == "North") {
         if (currentX == 0 ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX-1, currentY), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX-1, currentY))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x-1, currentPosition.y);
         }
     } else if (action == "South") {
         if (currentX == (this->state.rows - 1) ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX+1, currentY), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX+1, currentY))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x+1, currentPosition.y);
         }
     } else if (action == "East") {
         if (currentY == (this->state.cols - 1) ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX, currentY+1), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX, currentY+1))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x, currentPosition.y+1);
         }
     } else if (action == "West") {
         if (currentY == 0 ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX, currentY-1), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX, currentY-1))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x, currentPosition.y-1);
         }
     } else if (action == "NE") {
         if (currentX == 0 || currentY == (this->state.cols - 1) ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX-1, currentY+1), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX-1, currentY+1))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x-1, currentPosition.y+1);
         }
     } else if (action == "NW") {
         if (currentX == 0 || currentY == 0 ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX-1, currentY-1), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX-1, currentY-1))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x-1, currentPosition.y-1);
         }
     } else if (action == "SE") {
         if (currentX == (this->state.rows - 1) || currentY == (this->state.cols - 1) ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX+1, currentY+1), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX+1, currentY+1))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x+1, currentPosition.y+1);
         }
     } else if (action == "SW") {
         if (currentX == (this->state.rows - 1) || currentY == 0 ||
-            !checkMoveDirectionNeighbors(cv::Point2i(currentX+1, currentY-1), action)) {
+            !checkMoveDirectionNeighbors(currentPosition, cv::Point2i(currentX+1, currentY-1))) {
             isLegal = false;
+        } else {
+            nextPosition = cv::Point2i(currentPosition.x+1, currentPosition.y-1);
         }
     } else if (action == "Stop") {
         isLegal = false; // do not allow 'stop' action any more
@@ -334,34 +328,11 @@ bool BoardState::checkActionLegality(std::string action) {
 // Apply an action, update currentPosition,
 // and return the type of the new currentPosition cell
 // the agent give rewards according to this returned value
-std::string BoardState::applyAction(std::string action) {
+std::string BoardState::applyAction(const cv::Point2i& nextPosition) {
     this->state.at<uchar>(currentPosition.x, currentPosition.y) = 3;    // Change the value of agent's current position from 100 to 3,
                                                                         // 100 represents the current position, 3 means this position has been visited before
+    currentPosition = nextPosition;     // using & reference here!
     std::string  cellType = "";
-    if (action == "North") {
-        currentPosition.x--;
-    } else if (action == "South") {
-        currentPosition.x++;
-    } else if (action == "East") {
-        currentPosition.y++;
-    } else if (action == "West") {
-        currentPosition.y--;
-    } else if (action == "NE") {
-        currentPosition.x--;
-        currentPosition.y++;
-    } else if (action == "NW") {
-        currentPosition.x--;
-        currentPosition.y--;
-    } else if (action == "SE") {
-        currentPosition.x++;
-        currentPosition.y++;
-    } else if (action == "SW") {
-        currentPosition.x++;
-        currentPosition.y--;
-    } else {
-        std::cerr << "Wrong action: " + action << std::endl;
-        exit(-1);
-    }
     if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 1) {
         cellType = "UnvisitedRoad";
     } else if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 3) {
