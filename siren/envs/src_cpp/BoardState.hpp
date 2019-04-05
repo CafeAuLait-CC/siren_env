@@ -45,6 +45,7 @@ private:
     
     /** @brief Get all image file names from a text file. Each line in the .txt file is a image file name.
      @param fileName The name of text file (with its path, for example: ../images/name_list.txt )
+     @return A vector that contains all the image file names.
      */
     std::vector<std::string> getImageFileNames(std::string fileName);
     
@@ -61,6 +62,7 @@ private:
     void initActionList();
     
     /** @brief Random number generator used for patch sampling.
+     @return A random number indicate the file index in the fileNameList
      */
     int getNewFileNameNum();
     
@@ -71,12 +73,14 @@ private:
     /** @brief Check if a given action is a legal action.
      A legal actions means this action won't make the agent go across a building.
      @param action The action givin to the agent. One of ['Stop', 'North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW']
+     @return true if it is a legal action.
      */
     bool checkActionLegality(std::string action);
     
     /** @brief Check the two neighbors along the direction that perpendicular to the action direction.
      If any of the two neighbors is road cell, return true.
      @param action The action givin to the agent. One of ['North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW']. It's different than checkActionLegality() !
+     @return true if at least one of the three cells in the moving direction is road cell.
      */
     bool checkMoveDirectionNeighbors(cv::Point2i prevPosition, const std::string& action);
     
@@ -92,7 +96,7 @@ private:
     
     /** @brief Apply action and return the type of the next cell, update "currentPosition" in the mean time.
      @param action Draw the cell at this(current) position
-     @return type of the next cell, one of "VisitedRoad", "UnvisitedRoad", "RoadNeighbor".
+     @return Type of the next cell, one of "VisitedRoad", "UnvisitedRoad", "RoadNeighbor", "TravelPath".
      */
     std::string applyAction(std::string action); //
     

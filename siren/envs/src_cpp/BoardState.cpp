@@ -50,8 +50,8 @@ void BoardState::initBoardState(int fileNameNum) {
                    Same with the 'rgbImg' above.
      */
     // this->state = gtImg->getPattern();
-   gtImg->getPattern().copyTo(this->state);
-   delete gtImg;
+    gtImg->getPattern().copyTo(this->state);
+    delete gtImg;
 
     setStartLocation();     // Set a start cell for the agent. (Choose the first road cell as start point)
     
@@ -90,7 +90,7 @@ void BoardState::addYellowCell2Imagery(const cv::Point2i& position) {
     // Padding: zero padding at edges of imagery tile
     paddingForImageryPatch(position);
 
-    // Only updating current patch, without draw yellow box at center
+    // Comment out the next line to only updating current patch, without draw yellow box at center
     // yellowCell.copyTo(this->imageryPatch(cv::Range(this->patchSize.height / 2 - cellSize.height / 2, this->patchSize.height / 2 + cellSize.height / 2),
                                    // cv::Range(this->patchSize.width / 2 - cellSize.width / 2, this->patchSize.width / 2 + cellSize.width / 2)));
 }
@@ -170,11 +170,14 @@ cv::Mat BoardState::getCurrentState() {
 // Calculate the next state with a specific action as input
 cv::Mat BoardState::getNextState(std::string action) {
     if (checkActionLegality(action)) {
-        if (applyAction(action) == "UnvisitedRoad") {       // If the step lies on an unvisited road cell
+        std::string nextCellType = applyAction(action);    // Apply the action, return the next cell Type
+        if (nextCellType == "UnvisitedRoad") {       // If the step lies on an unvisited road cell
             this->reward += 10;
             this->remainingRoadPoints--;
-        } else if (applyAction(action) == "VisitedRoad") {  // If the step lies on a visited road cell
-            this->reward += 5;
+        } else if (nextCellType == "VisitedRoad") {  // If the step lies on a visited road cell
+            this->reward += 3;
+        } else if (nextCellType == "TravelPath") {   // If the step lies on a travel path cell (edges)
+            this->reward += 3;
         } else {                                            // If the step lies on a neighbor of road cell
             this->reward--; // Deduction of rewards is optional
         }
@@ -319,7 +322,7 @@ bool BoardState::checkActionLegality(std::string action) {
             isLegal = false;
         }
     } else if (action == "Stop") {
-        isLegal = false; // do not allow 'stop' action anymore
+        isLegal = false; // do not allow 'stop' action any more
     } else {
         std::cerr << "Wrong action: " + action << std::endl;
         exit(-1);
@@ -363,6 +366,8 @@ std::string BoardState::applyAction(std::string action) {
         cellType = "UnvisitedRoad";
     } else if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 3) {
         cellType = "VisitedRoad";
+    } else if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 4) {
+        cellType = "TravelPath";
     } else {
         cellType = "RoadNeighbor";
     }
