@@ -19,8 +19,12 @@ class SirenEnv(gym.Env):
 		self.board = sc.BoardState()
 
 		# required values for gym
-		self.state = np.array(self.board.getCurrentState())
-		self.reward = self.board.getReward()
+		rgbChannel = np.array(self.board.getCurrentState())
+		alpha = np.array(self.board.getAlpha())
+		miniMap = np.array(self.board.miniMap())
+		lastTwoChannel = np.dstack((alpha, miniMap))
+		self.state = np.dstack((rgbChannel, lastTwoChannel))	# five channel as input
+		self.reward = self.board.getReward() + self.board.getMiniMapReward()
 		self.done = self.board.isDone()
 		self.info = {}
 
@@ -28,12 +32,12 @@ class SirenEnv(gym.Env):
 		self.numMoves = 0
 		self.previousReward = 0
 		self.action_space = spaces.Discrete(9)	# len(self.unwrapped.get_action_meanings())
-		self.observation_space = spaces.Box(0, 255, (200, 200, 3), dtype=np.uint8)
+		self.observation_space = spaces.Box(0, 255, (200, 200, 5), dtype=np.uint8)
 		
 
 	def step(self, action):
 		action = list(self.board.getActionList())[action]
-		legalAction = self.board.getLegalActions()
+		# legalAction = self.board.getLegalActions()
 		self.numMoves += 1
 
 		# if action not in legalAction:
@@ -41,8 +45,13 @@ class SirenEnv(gym.Env):
 
 		self.previousReward = self.reward
 
-		self.state = np.array(self.board.getNextState(action))
-		self.reward = self.board.getReward()
+		
+		rgbChannel = np.array(self.board.getNextState(action))
+		alpha = np.array(self.board.getAlpha())
+		miniMap = np.array(self.board.miniMap())
+		lastTwoChannel = np.dstack((alpha, miniMap))
+		self.state = np.dstack((rgbChannel, lastTwoChannel))
+		self.reward = self.board.getReward() + self.board.getMiniMapReward()
 		self.done = self.board.isDone()
 		self.info = {}
 
@@ -53,9 +62,9 @@ class SirenEnv(gym.Env):
 			self.done = True
 			self.info['info'] = 'Failed to complete. Too many moves.'
 			self.info['numMoves'] = self.numMoves
-		if self.reward < -200:
-			self.done = True
-			self.info['info'] = "Too many wrong movements"
+		# if self.reward < -500:
+		# 	self.done = True
+		# 	self.info['info'] = "Too many wrong movements"
 		return [self.state, rewardChanged, self.done, self.info]
 
 	def reset(self):
@@ -64,8 +73,12 @@ class SirenEnv(gym.Env):
 		else:
 			self.board.reset(True)
 
-		self.state = np.array(self.board.getCurrentState())
-		self.reward = self.board.getReward()
+		rgbChannel = np.array(self.board.getCurrentState())
+		alpha = np.array(self.board.getAlpha())
+		miniMap = np.array(self.board.miniMap())
+		lastTwoChannel = np.dstack((alpha, miniMap))
+		self.state = np.dstack((rgbChannel, lastTwoChannel))
+		self.reward = self.board.getReward() + self.board.getMiniMapReward()
 		self.done = self.board.isDone()
 		self.info = {}
 
@@ -75,7 +88,7 @@ class SirenEnv(gym.Env):
 		return self.state
 
 	def render(self, mode='human', close=False):
-		cv2.imshow("Test Agent", self.state)
+		cv2.imshow("Test Agent", np.array(self.board.getCurrentState()))
 		cv2.waitKey(50)
 
 	def get_action_meanings(self):
