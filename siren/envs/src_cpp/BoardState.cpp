@@ -226,6 +226,11 @@ int BoardState::getReward() {
     return this->reward;
 }
 
+// Return reward of completeness
+int BoardState::getMiniMapReward() {
+    return this->completenessReward;
+}
+
 // Check if the game is done.
 bool BoardState::isDone() {
     if (currentImageDone) { // If some other function force the game to finish.

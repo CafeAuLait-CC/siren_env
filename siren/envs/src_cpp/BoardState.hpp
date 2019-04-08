@@ -34,6 +34,7 @@ public:
     std::vector<std::string> getLegalActions();     // Get legal actions
     
     int getReward();    // Get current rewards
+    int getMiniMapReward();
     bool isDone();      // Check if the game is done
     
     void reset(bool toCurrentImage);    // If done, reset the entire state.
