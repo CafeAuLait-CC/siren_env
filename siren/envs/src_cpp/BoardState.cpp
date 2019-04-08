@@ -13,7 +13,7 @@ BoardState::BoardState() {
     // including 'action_list', 'original_patch_size', 'new_patch_size', 'cell_size'...
     readConfigFromFile();
     initActionList();
-    this->currentFileNameNum = getNewFileNameNum(); // random number in range [0, actionList.size())
+    this->currentFileNameNum = getRandomNumInRange(int(this->fileNameListGT.size())); // random number in range [0, actionList.size())
     initBoardState(currentFileNameNum); // random sample a patch to init the board
 }
 
@@ -61,9 +61,12 @@ void BoardState::initBoardState(int fileNameNum) {
     this->cellSize = cv::Size(s_i.width / s_g.width, s_i.height / s_g.height);
     
     this->imageryPatch = cv::Mat::zeros(this->patchSize, CV_8UC3);
+    this->miniMap = cv::Mat::zeros(this->patchSize, CV_8UC1);
+    this->miniMapCellSize = cv::Size(this->patchSize.height / (this->imagery.size().height / this->patchSize.height),
+                                        this->patchSize.width / (this->imagery.size().width / this->patchSize.width));
     
     // Label visited cell using a yellow block. (Here is the first one, starting point)
-    paddingForImageryPatch(currentPosition);
+    generateObservationPatch(currentPosition);
     
     // Count number of road cells
     for (int i = 0; i < this->state.rows; i++) {
@@ -76,8 +79,8 @@ void BoardState::initBoardState(int fileNameNum) {
     this->totalNumRoadPoints = this->remainingRoadPoints;
 }
 
-// Padding: zero padding at edges of imagery tile
-void BoardState::paddingForImageryPatch(const cv::Point2i& position) {
+// Generate the observation space
+void BoardState::generateObservationPatch(const cv::Point2i& position) {
     
     // Generate new current patch and draw yellow cell at center
     int radius_row = this->imageryPatch.size().height / this->cellSize.height / 2;
@@ -92,6 +95,17 @@ void BoardState::paddingForImageryPatch(const cv::Point2i& position) {
     int y_left = (position.y - radius_col) * this->cellSize.width;
     int y_right = (position.y + radius_col) * this->cellSize.width;
     
+    // Padding: zero padding at edges of imagery tile
+    paddingForImageryPatch(pad_up, pad_down, pad_left, pad_right, x_up, x_down, y_left, y_right);
+    
+    // Generate corresponding alpha channel to tell the network about recent move history
+    generateAlphaChannel(pad_up, pad_down, pad_left, pad_right, x_up, y_left);
+    
+    // Generate the mini map
+    generateMiniMap();
+}
+
+void BoardState::paddingForImageryPatch(int &pad_up, int &pad_down, int &pad_left, int &pad_right, int &x_up, int &x_down, int &y_left, int &y_right) {
     if (x_up < 0) {
         pad_up = x_up * -1;
         x_up = 0;
@@ -106,10 +120,41 @@ void BoardState::paddingForImageryPatch(const cv::Point2i& position) {
         pad_right = y_right - this->imagery.cols;
         y_right = this->imagery.cols;
     }
+    
+    this->imageryPatch = cv::Mat::zeros(this->imageryPatch.size(), CV_8UC3);
+    this->imagery(cv::Range(x_up, x_down), cv::Range(y_left, y_right))
+        .copyTo(this->imageryPatch(cv::Range(pad_up, this->imageryPatch.rows - pad_down),
+                                   cv::Range(pad_left, this->imageryPatch.cols - pad_right)));
+}
 
-    this->imageryPatch = cv::Mat::zeros(this->imageryPatch.size(), this->imageryPatch.type());
-    this->imagery(cv::Range(x_up, x_down), cv::Range(y_left, y_right)).copyTo(
-        this->imageryPatch(cv::Range(pad_up, this->imageryPatch.rows - pad_down), cv::Range(pad_left, this->imageryPatch.cols - pad_right)));
+void BoardState::generateAlphaChannel(const int &pad_up, const int &pad_down, const int &pad_left, const int &pad_right, const int &x_up, const int &y_left) {
+    this->alphaPatch = cv::Mat::zeros(this->imageryPatch.size(), CV_8UC1);
+    cv::Mat visitedCell = cv::Mat::ones(this->cellSize, this->alphaPatch.type()) * 255;
+    for (int i = pad_up; i < this->alphaPatch.rows-pad_down; i+=this->cellSize.height) {
+        for (int j = pad_left; j < this->alphaPatch.cols-pad_right; j+=this->cellSize.width) {
+            int x = i + x_up - pad_up;
+            int y = j + y_left - pad_left;
+            int cellHeight = this->cellSize.height;
+            int cellWidth = this->cellSize.width;
+            if (this->state.at<uchar>(x / cellHeight, y / cellWidth) == 3 ||
+                this->state.at<uchar>(x / cellHeight, y / cellWidth) == 100) {
+                visitedCell.copyTo(this->alphaPatch(cv::Range(i, i + cellHeight), cv::Range(j, j + cellWidth)));
+            }
+        }
+    }
+}
+
+void BoardState::generateMiniMap() {
+    // No need to reset mini map every time
+    cv::Mat visitedRegion = cv::Mat::ones(this->miniMapCellSize, this->miniMap.type()) * 255;
+    int rowStepSize = this->state.size().height / (this->patchSize.height / this->miniMapCellSize.height);
+    int colStepSize = this->state.size().width / (this->patchSize.width / this->miniMapCellSize.width);
+    int x = this->currentPosition.x / rowStepSize;// * this->miniMapCellSize.height;
+    int y = this->currentPosition.y / colStepSize;// * this->miniMapCellSize.width;
+    if (this->miniMap.at<uchar>(x + miniMapCellSize.height / 2, y + this->miniMapCellSize.width / 2) == 0) {
+        visitedRegion.copyTo(this->miniMap(cv::Range(x, x + this->miniMapCellSize.height), cv::Range(y, y + this->miniMapCellSize.width)));
+        this->completenessReward += 20;     // Additional term for completeness
+    }
 }
 
 // Init all posible actions
@@ -162,13 +207,13 @@ cv::Mat BoardState::getNextState(std::string action) {
             this->reward += 10;
             this->remainingRoadPoints--;
         } else if (nextCellType == "VisitedRoad") {  // If the step lies on a visited road cell
-            this->reward += 3;
+            this->reward--;
         } else if (nextCellType == "TravelPath") {   // If the step lies on a travel path cell (edges)
-            this->reward += 3;
+            this->reward--;
         } else {                                            // If the step lies on a neighbor of road cell
             this->reward--; // Deduction of rewards is optional
         }
-        paddingForImageryPatch(currentPosition);
+        generateObservationPatch(currentPosition);
     } else {
         // Illegal action, do nothing or reduce reward.
         this->reward -= 50;
@@ -201,7 +246,7 @@ bool BoardState::isDone() {
 void BoardState::reset(bool toCurrentImage) {
     // insert code here...
     if (this->currentImageDone || toCurrentImage) {
-        this->currentFileNameNum = getNewFileNameNum(); // Get a new random number
+        this->currentFileNameNum = getRandomNumInRange(int(this->fileNameListGT.size())); // Get a new random number
     }
     this->currentImageDone = false;
     this->reward = 0;
@@ -385,12 +430,22 @@ void BoardState::setStartLocation() {
 }
 
 // Random number generator used for sampling patches
-int BoardState::getNewFileNameNum() {
-    return rand() % this->fileNameListGT.size();
+int BoardState::getRandomNumInRange(int maxNum) {
+    return rand() % maxNum;
 }
 
 // For debug use
 // Return current chessboard status
 cv::Mat BoardState::getState() {
     return this->state;
+}
+
+// Return the alpha channel
+cv::Mat BoardState::getAlpha() {
+    return this->alphaPatch;
+}
+
+// Return the mini map
+cv::Mat BoardState::getMiniMap() {
+    return this->miniMap;
 }

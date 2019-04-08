@@ -22,7 +22,9 @@ public:
     
     // Init state (read config from file, setup stuffs)
     BoardState();
-    cv::Mat getState(); // for debug
+    cv::Mat getState();     // for debug
+    cv::Mat getAlpha();     // for debug (temporary)
+    cv::Mat getMiniMap();   // for debug (temporary)
     
     // State operations
     cv::Mat getCurrentState();
@@ -61,10 +63,10 @@ private:
      */
     void initActionList();
     
-    /** @brief Random number generator used for patch sampling.
-     @return A random number indicate the file index in the fileNameList
+    /** @brief Random number generator.
+     @return A random number in the range [0, maxNum).
      */
-    int getNewFileNameNum();
+    int getRandomNumInRange(int maxNum);
     
     /** @brief Set a location to start the progress. The first road cell from the top left corner of a patch is used.
      */
@@ -94,10 +96,37 @@ private:
     std::vector<cv::Point2i> getNeighbors(const cv::Point2i& prevPosition, const cv::Point2i& nextPosition);
     
 
-    /** @brief Padding for imagery patches if it goes out of image tile boundary.
-     @param position zero padding the image patch around (current) position.
+    /** @brief Generate the observation space for learning agent.
+     @param position The observation space will be around the (current) position.
      */
-    void paddingForImageryPatch(const cv::Point2i& position);
+    void generateObservationPatch(const cv::Point2i& position);
+    
+    /** @brief Padding for imagery patches if it goes out of image tile boundary.
+     @param pad_up How much space above the imagery patch.
+     @param pad_down How much space below the imagery patch.
+     @param pad_left How much space on the left of the imagery patch.
+     @param pad_right How much space on the right of the imagery patch.
+     @param x_up Start row in the entire imagery tile.
+     @param x_down End row in the entire imagery tile.
+     @param y_left Start column in the entire imagery tile.
+     @param y_right end column in the entire imagery tile.
+     */
+    void paddingForImageryPatch(int &pad_up, int &pad_down, int &pad_left, int &pad_right, int &x_up, int &x_down, int &y_left, int &y_right);
+    
+    /** @brief Generate a 4th channel (alpha) that shows the history visited road cell in this window/patch.
+     Parameters are from the previous step - `paddingForImageryPatch()`
+     @param pad_up How much space above the imagery patch.
+     @param pad_down How much space below the imagery patch.
+     @param pad_left How much space on the left of the imagery patch.
+     @param pad_right How much space on the right of the imagery patch.
+     @param x_up Start row in the entire imagery tile.
+     @param y_left Start column in the entire imagery tile.
+     */
+    void generateAlphaChannel(const int &pad_up, const int &pad_down, const int &pad_left, const int &pad_right, const int &x_up, const int &y_left);
+    
+    /** @brief Generate a mini map indicating the current area in the complete imagery.
+     */
+    void generateMiniMap();
     
     /** @brief Apply action and return the type of the next cell, update "currentPosition" in the mean time.
      @param nextPosition Update current position to next position
@@ -116,14 +145,22 @@ private:
     
     cv::Mat imagery;
     cv::Mat state;      // Use pointer or not?
+    
     cv::Mat imageryPatch;    // The imagery patch around current position
+    cv::Mat alphaPatch; // a fourth channel shows recent visited road cells
+    cv::Mat miniMap;
+    
     cv::Size cellSize;  // basic unit in chessboard state
     cv::Size patchSize; // patch size for the network
+    cv::Size miniMapCellSize;   // cell size in mini map
     int stepSize = 1;   // not used yet
     int currentFileNameNum = 0;
+    
     int reward = 0;
     int totalNumRoadPoints = 0;
     int remainingRoadPoints = 0;
+    int completenessReward = 0;
+    
     bool currentImageDone = false;  // A flag used to decide if reset to a new patch or use the same patch
 };
 
