@@ -14,7 +14,7 @@ BoardState::BoardState() {
     readConfigFromFile();
     initActionList();
     this->currentFileNameNum = getRandomNumInRange(int(this->fileNameListGT.size())); // random number in range [0, actionList.size())
-    initBoardState(currentFileNameNum); // random sample a patch to init the board
+    initBoardState(currentFileNameNum); // random sample an imagery tile to init the board
 }
 
 // configurations
@@ -65,7 +65,7 @@ void BoardState::initBoardState(int fileNameNum) {
     this->miniMapCellSize = cv::Size(this->patchSize.height / (this->imagery.size().height / this->patchSize.height),
                                         this->patchSize.width / (this->imagery.size().width / this->patchSize.width));
     
-    // Label visited cell using a yellow block. (Here is the first one, starting point)
+    // Generate the observation patch, 5 channels
     generateObservationPatch(currentPosition);
     
     // Count number of road cells
@@ -256,7 +256,8 @@ void BoardState::reset(bool toCurrentImage) {
     this->currentImageDone = false;
     this->reward = 0;
     this->remainingRoadPoints = 0;
-    initBoardState(currentFileNameNum); // sample a patch to init the board
+    this->completenessReward = 0;
+    initBoardState(currentFileNameNum); // sample a imagery to init the board
 }
 
 // Check the two neighbors along the direction that perpendicular to the action direction

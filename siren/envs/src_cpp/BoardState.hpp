@@ -55,7 +55,7 @@ private:
     
     // inits
     
-    /** @brief Select the Nth image patch to initialize a new chessboard.
+    /** @brief Select the Nth imagery tile to initialize a new chessboard.
      @param fileNameNum The patch at fileNameList[fileNameNum] will be used.
      */
     void initBoardState(int fileNameNum);
