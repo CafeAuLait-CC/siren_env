@@ -21,7 +21,7 @@ class SirenEnv(gym.Env):
 		# required values for gym
 		rgbChannel = np.array(self.board.getCurrentState())
 		alpha = np.array(self.board.getAlpha())
-		miniMap = np.array(self.board.miniMap())
+		miniMap = np.array(self.board.getMiniMap())
 		lastTwoChannel = np.dstack((alpha, miniMap))
 		self.state = np.dstack((rgbChannel, lastTwoChannel))	# five channel as input
 		self.reward = self.board.getReward() + self.board.getMiniMapReward()
@@ -48,7 +48,7 @@ class SirenEnv(gym.Env):
 		
 		rgbChannel = np.array(self.board.getNextState(action))
 		alpha = np.array(self.board.getAlpha())
-		miniMap = np.array(self.board.miniMap())
+		miniMap = np.array(self.board.getMiniMap())
 		lastTwoChannel = np.dstack((alpha, miniMap))
 		self.state = np.dstack((rgbChannel, lastTwoChannel))
 		self.reward = self.board.getReward() + self.board.getMiniMapReward()
@@ -75,7 +75,7 @@ class SirenEnv(gym.Env):
 
 		rgbChannel = np.array(self.board.getCurrentState())
 		alpha = np.array(self.board.getAlpha())
-		miniMap = np.array(self.board.miniMap())
+		miniMap = np.array(self.board.getMiniMap())
 		lastTwoChannel = np.dstack((alpha, miniMap))
 		self.state = np.dstack((rgbChannel, lastTwoChannel))
 		self.reward = self.board.getReward() + self.board.getMiniMapReward()
@@ -87,8 +87,14 @@ class SirenEnv(gym.Env):
 
 		return self.state
 
-	def render(self, mode='human', close=False):
-		cv2.imshow("Test Agent", np.array(self.board.getCurrentState()))
+	def render(self, mode='human', close=False, name = ""):
+		if name == "":
+			cv2.imshow("Test Agent - Imagery", np.array(self.board.getCurrentState()))
+			cv2.imshow("Test Agent - Route", np.array(self.board.getAlpha()))
+		else:
+			cv2.imshow(name + " - Imagery", np.array(self.board.getCurrentState()))
+			cv2.imshow(name + " - Route", np.array(self.board.getAlpha()))
+		# cv2.imshow("Test Agent - Mini Map", np.array(self.board.getMiniMap()))
 		cv2.waitKey(50)
 
 	def get_action_meanings(self):
