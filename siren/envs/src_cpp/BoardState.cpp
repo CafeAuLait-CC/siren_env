@@ -71,7 +71,7 @@ void BoardState::initBoardState(int fileNameNum) {
     // Count number of road cells
     for (int i = 0; i < this->state.rows; i++) {
         for (int j = 0; j < this->state.cols; j++) {
-            if (this->state.at<uchar>(i, j) == 1) {
+            if (this->state.at<cv::Vec3b>(i, j)[0] == 1) {
                 this->remainingRoadPoints++;
             }
         }
@@ -136,8 +136,8 @@ void BoardState::generateAlphaChannel(const int &pad_up, const int &pad_down, co
             int y = j + y_left - pad_left;
             int cellHeight = this->cellSize.height;
             int cellWidth = this->cellSize.width;
-            if (this->state.at<uchar>(x / cellHeight, y / cellWidth) == 3 ||
-                this->state.at<uchar>(x / cellHeight, y / cellWidth) > 100) {
+            if (this->state.at<cv::Vec3b>(x / cellHeight, y / cellWidth)[1] == 3 ||
+                this->state.at<cv::Vec3b>(x / cellHeight, y / cellWidth)[1] == 100) {
                 visitedCell.copyTo(this->alphaPatch(cv::Range(i, i + cellHeight), cv::Range(j, j + cellWidth)));
             }
         }
@@ -269,7 +269,7 @@ bool BoardState::checkMoveDirectionNeighbors(const cv::Point2i& prevPosition, co
     
     // Check if the three points contains road
     for (int i = 0; i < threeNeighbours.size(); i++) {
-        if (this->state.at<uchar>(threeNeighbours[i].x, threeNeighbours[i].y) != 0) {
+        if (this->state.at<cv::Vec3b>(threeNeighbours[i].x, threeNeighbours[i].y)[0] != 0) {
             hasRoadNeighbor = true;
             break;
         }
@@ -382,24 +382,24 @@ bool BoardState::getNextPosition(std::string action, cv::Point2i &nextPosition, 
 // and return the type of the new currentPosition cell
 // the agent give rewards according to this returned value
 std::string BoardState::applyAction(const cv::Point2i& nextPosition) {
-    this->state.at<uchar>(currentPosition.x, currentPosition.y) -= 100;
-    if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 1) {
-        // Change the value of agent's current position from 100+ to 3,
-        // 100 represents the current position, 3 means this position has been visited before.
-        this->state.at<uchar>(currentPosition.x, currentPosition.y) = 3;
-    }
+    this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] = 3;//-= 100;
+//    if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 1) {
+//        // Change the value of agent's current position from 100+ to 3,
+//        // 100 represents the current position, 3 means this position has been visited before.
+//        this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] = 3;
+//    }
     currentPosition = nextPosition;     // using & reference here!
     std::string  cellType = "";
-    if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 1) {
+    if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 1) {
         cellType = "UnvisitedRoad";
-    } else if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 3) {
+    } else if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 3) {
         cellType = "VisitedRoad";
-    } else if (this->state.at<uchar>(currentPosition.x, currentPosition.y) == 4) {
+    } else if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 4) {
         cellType = "TravelPath";
     } else {
         cellType = "RoadNeighbor";
     }
-    this->state.at<uchar>(currentPosition.x, currentPosition.y) += 100;  // Update agent's current position
+    this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] = 100;  // Update agent's current position
     return cellType;
 }
 
@@ -431,7 +431,7 @@ void BoardState::setStartLocation() {
             break;
         }
         for (int j = 10; j < this->state.cols; j++) {
-            if (this->state.at<uchar>(i, j) == 1) {
+            if (this->state.at<cv::Vec3b>(i, j)[0] == 1) {
                 this->currentPosition = cv::Point2i(i, j);
                 isSet = true;
                 break;
