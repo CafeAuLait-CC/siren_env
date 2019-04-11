@@ -28,7 +28,7 @@ public:
     
     // State operations
     cv::Mat getCurrentState();
-    cv::Mat getNextState(std::string action);
+    cv::Mat getNextState(std::string action, bool checkActionLegality);
     
     std::vector<std::string> getActionList();       // Get all actions
     std::vector<std::string> getLegalActions();     // Get legal actions
@@ -73,13 +73,13 @@ private:
      */
     void setStartLocation();
     
-    /** @brief Check if a given action is a legal action.
-     A legal actions means this action won't make the agent go across a building.
+    /** @brief Get the next position given an action.
+     A legal actions means this action won't make the agent go off the road.
      @param action The action givin to the agent. One of ['Stop', 'North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW'].
      @param nextPosition The destination position after applying the given action.
-     @return true and output the next position if it is a legal action.
+     @return if it is a legal action and output the next position.
      */
-    bool checkActionLegality(std::string action, cv::Point2i& nextPosition);
+    bool getNextPosition(std::string action, cv::Point2i& nextPosition);
     
     /** @brief Check the two neighbors along the direction that perpendicular to the action direction.
      If any of the two neighbors is road cell, return true.
@@ -162,7 +162,7 @@ private:
     int remainingRoadPoints = 0;
     int completenessReward = 0;
     
-    bool currentImageDone = false;  // A flag used to decide if reset to a new patch or use the same patch
+    bool gameover = false;  // A flag used to finish the current epoch
 };
 
 #endif /* BoardState_hpp */
