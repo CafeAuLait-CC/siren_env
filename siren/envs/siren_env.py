@@ -29,6 +29,7 @@ class SirenEnv(gym.Env):
 		self.info = {}
 
 		# additional informations
+		self.isTraining = True
 		self.numMoves = 0
 		self.previousReward = 0
 		self.action_space = spaces.Discrete(9)	# len(self.unwrapped.get_action_meanings())
@@ -46,7 +47,7 @@ class SirenEnv(gym.Env):
 		self.previousReward = self.reward
 
 		
-		rgbChannel = np.array(self.board.getNextState(action))
+		rgbChannel = np.array(self.board.getNextState(action, self.isTraining))
 		alpha = np.array(self.board.getAlpha())
 		miniMap = np.array(self.board.getMiniMap())
 		lastTwoChannel = np.dstack((alpha, miniMap))
@@ -58,6 +59,9 @@ class SirenEnv(gym.Env):
 		rewardChanged = self.reward - self.previousReward
 		# if rewardChanged < 0:
 		# 	rewardChanged = 0
+		if self.done:
+			if self.numMoves < 10000:
+				self.info['info'] = "Finished by environment. Maybe due to illegal action."
 		if self.numMoves > 1000:
 			self.done = True
 			self.info['info'] = 'Failed to complete. Too many moves.'
@@ -88,12 +92,13 @@ class SirenEnv(gym.Env):
 		return self.state
 
 	def render(self, mode='human', close=False, name = ""):
+		imagery = np.array(self.board.getCurrentState())
+		route = np.array(self.board.getAlpha())
+		imagery[route==255] = [0, 255, 255]
 		if name == "":
-			cv2.imshow("Test Agent - Imagery", np.array(self.board.getCurrentState()))
-			cv2.imshow("Test Agent - Route", np.array(self.board.getAlpha()))
+			cv2.imshow("Test Agent", imagery)
 		else:
-			cv2.imshow(name + " - Imagery", np.array(self.board.getCurrentState()))
-			cv2.imshow(name + " - Route", np.array(self.board.getAlpha()))
+			cv2.imshow("Training - " + name, imagery)
 		# cv2.imshow("Test Agent - Mini Map", np.array(self.board.getMiniMap()))
 		cv2.waitKey(50)
 

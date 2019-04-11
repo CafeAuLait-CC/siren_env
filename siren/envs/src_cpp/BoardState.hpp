@@ -77,9 +77,10 @@ private:
      A legal actions means this action won't make the agent go off the road.
      @param action The action givin to the agent. One of ['Stop', 'North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW'].
      @param nextPosition The destination position after applying the given action.
+     @param checkActionLegality If it's necessory to check the action legality. Normally true for training, false for testing in learning agent
      @return if it is a legal action and output the next position.
      */
-    bool getNextPosition(std::string action, cv::Point2i& nextPosition);
+    bool getNextPosition(std::string action, cv::Point2i &nextPosition, const bool &checkActionLegality);
     
     /** @brief Check the two neighbors along the direction that perpendicular to the action direction.
      If any of the two neighbors is road cell, return true.

@@ -182,7 +182,7 @@ std::vector<std::string> BoardState::getLegalActions() {
     std::vector<std::string> legalActions;
     cv::Point2i tempPoint;      // tempPoint is useless here, just to fit into the parameters of checkActionLegality() function
     for (int i = 0; i < this->actionList.size(); i++) {
-        if (getNextPosition(this->actionList[i], tempPoint)) {
+        if (getNextPosition(this->actionList[i], tempPoint, true)) {
             legalActions.push_back(this->actionList[i]);
         }
     }
@@ -200,7 +200,7 @@ cv::Mat BoardState::getCurrentState() {
 // Calculate the next state with a specific action as input
 cv::Mat BoardState::getNextState(std::string action, bool checkActionLegality) {
     cv::Point2i nextPosition = cv::Point2i(-1, -1);
-    if (getNextPosition(action, nextPosition) || !checkActionLegality) {
+    if (getNextPosition(action, nextPosition, checkActionLegality)) {
         if (nextPosition == cv::Point2i(-1, -1)) {
             std::cerr << "getNextState: Illegal action: " << action << " from " << currentPosition << " to " << nextPosition << std::endl;
         }
@@ -250,8 +250,7 @@ bool BoardState::isDone() {
 }
 
 void BoardState::reset(bool toCurrentImage) {
-    // insert code here...
-    if (this->gameover || toCurrentImage) {
+    if (toCurrentImage) {
         this->currentFileNameNum = getRandomNumInRange(int(this->fileNameListGT.size())); // Get a new random number
     }
     this->gameover = false;
@@ -306,7 +305,7 @@ std::vector<cv::Point2i> BoardState::getNeighbors(const cv::Point2i& prevPositio
 }
 
 // Check if a givin action is legal action - not going out of a road
-bool BoardState::getNextPosition(std::string action, cv::Point2i& nextPosition) {
+bool BoardState::getNextPosition(std::string action, cv::Point2i &nextPosition, const bool &checkActionLegality) {
     bool isLegal = true;
     int currentX = currentPosition.x;
     int currentY = currentPosition.y;
@@ -360,12 +359,21 @@ bool BoardState::getNextPosition(std::string action, cv::Point2i& nextPosition) 
         nextPosition = cv::Point2i(currentPosition.x+1, currentPosition.y-1);
     } else if (action == "Stop") {
         isLegal = false; // do not allow 'stop' action any more
+        nextPosition = currentPosition;
     } else {
         std::cerr << "Wrong action: " + action << std::endl;
         exit(-1);
     }
-    if (!isLegal) {
-        this->gameover = true;
+    if (checkActionLegality) {
+        if (!isLegal) {
+            this->gameover = true;
+        }
+    } else {    // If it's not necessory to check legality of the action (for example during testing)
+                // just apply the action ignore the legality (as long as it's not going out of the board).
+        if (nextPosition.x >= 0 && nextPosition.y >0 &&
+            nextPosition.x < this->state.rows && nextPosition.y < this->state.cols) {
+            isLegal = true;
+        }
     }
     return isLegal;
 }
