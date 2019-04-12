@@ -11,6 +11,7 @@
 BoardState::BoardState() {
     // TODO: read configuration from config.txt file
     // including 'action_list', 'original_patch_size', 'new_patch_size', 'cell_size'...
+    srand((unsigned)time(NULL));    // seed the random number generator
     readConfigFromFile();
     initActionList();
     this->currentFileNameNum = getRandomNumInRange(int(this->fileNameListGT.size())); // random number in range [0, actionList.size())
@@ -382,17 +383,16 @@ bool BoardState::getNextPosition(std::string action, cv::Point2i &nextPosition, 
 // and return the type of the new currentPosition cell
 // the agent give rewards according to this returned value
 std::string BoardState::applyAction(const cv::Point2i& nextPosition) {
-    this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] = 3;//-= 100;
-//    if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 1) {
-//        // Change the value of agent's current position from 100+ to 3,
-//        // 100 represents the current position, 3 means this position has been visited before.
-//        this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] = 3;
-//    }
+    // Change the value of agent's current position from 100+ to 3,
+    // 100 represents the current position, 3 means this position has been visited before.
+    this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] = 3;
     currentPosition = nextPosition;     // using & reference here!
     std::string  cellType = "";
-    if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 1) {
+    if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 1 &&
+        this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] == 0) {
         cellType = "UnvisitedRoad";
-    } else if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 3) {
+    } else if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 1 &&
+               this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] == 3) {
         cellType = "VisitedRoad";
     } else if (this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[0] == 4) {
         cellType = "TravelPath";

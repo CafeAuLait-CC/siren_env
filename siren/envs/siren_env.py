@@ -66,9 +66,9 @@ class SirenEnv(gym.Env):
 			self.done = True
 			self.info['info'] = 'Failed to complete. Too many moves.'
 			self.info['numMoves'] = self.numMoves
-		# if self.reward < -500:
-		# 	self.done = True
-		# 	self.info['info'] = "Too many wrong movements"
+		if self.reward < -5000:
+			self.done = True
+			self.info['info'] = "Too many wrong movements"
 		return [self.state, rewardChanged, self.done, self.info]
 
 	def reset(self):
