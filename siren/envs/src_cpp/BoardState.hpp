@@ -28,17 +28,17 @@ public:
     
     // State operations
     cv::Mat getCurrentState();
-    cv::Mat getNextState(std::string action, bool checkActionLegality);
+    cv::Mat getNextState(float action, bool checkActionLegality);
     
-    std::vector<std::string> getActionList();       // Get all actions
-    std::vector<std::string> getLegalActions();     // Get legal actions
+    std::vector<float> getActionList();       // Get all actions
+    std::vector<float> getLegalActions();     // Get legal actions
     
     int getReward();    // Get current rewards
     int getMiniMapReward();
     bool isDone();      // Check if the game is done
     
     void reset(bool toCurrentImage);    // If done, reset the entire state.
-                                        // If toCurrentImage is true, reset using current image patch, otherwise, reset using next image patch.
+                                        // If toCurrentImage is true, reset using current image tile, otherwise, reset using next image tile.
     
 private:
     
@@ -53,7 +53,7 @@ private:
     std::vector<std::string> getImageFileNames(std::string fileName);
     
     
-    // inits
+    // Initializations
     
     /** @brief Select the Nth imagery tile to initialize a new chessboard.
      @param fileNameNum The patch at fileNameList[fileNameNum] will be used.
@@ -75,12 +75,12 @@ private:
     
     /** @brief Get the next position given an action.
      A legal actions means this action won't make the agent go off the road.
-     @param action The action givin to the agent. One of ['Stop', 'North', 'South', 'East', 'West', 'NE', 'NW', 'SE', 'SW'].
+     @param action The action givin to the agent. A float number in range [0, 180)
      @param nextPosition The destination position after applying the given action.
      @param checkActionLegality If it's necessory to check the action legality. Normally true for training, false for testing in learning agent
      @return if it is a legal action and output the next position.
      */
-    bool getNextPosition(std::string action, cv::Point2i &nextPosition, const bool &checkActionLegality);
+    bool getNextPosition(float action, cv::Point2i &nextPosition, const bool &checkActionLegality);
     
     /** @brief Check the two neighbors along the direction that perpendicular to the action direction.
      If any of the two neighbors is road cell, return true.
@@ -97,7 +97,6 @@ private:
      */
     std::vector<cv::Point2i> getNeighbors(const cv::Point2i& prevPosition, const cv::Point2i& nextPosition);
     
-
     /** @brief Generate the observation space for learning agent.
      @param position The observation space will be around the (current) position.
      */
@@ -136,26 +135,40 @@ private:
      */
     std::string applyAction(const cv::Point2i& nextPosition);
     
+    /** @brief Draw line on the imagery to show the visited pixels, color of this line shows the number of visited time of this pixel.
+     @param prevPositionOnState Start point of this line segment, represented with state-coordinate, not pixel coordinate.
+     @param nextPositionOnState end point of this line segment, represented with state-coordinate, not pixel coordinate.
+     @param pixelValue The value of pixels on this line.
+     */
+    void drawLineOnImagery(const cv::Point2i& prevPositionOnState, const cv::Point2i& nextPositionOnState, const int pixelValue);
+    
+    /** @brief Draw line on the state to record the visited cells, color of this line shows the number of visited time of this pixel.
+     @param prevPosition Start point of this line segment.
+     @param nextPosition end point of this line segment.
+     @param pixelValue The value of pixels on this line.
+     */
+    void drawLineOnState(const cv::Point2i& prevPosition, const cv::Point2i& nextPosition, const int pixelValue);
+    
     
     std::string pathToGTImages;
     std::string pathToImagery;
     std::vector<std::string> fileNameListGT;
     std::vector<std::string> fileNameListImagery;
     
-    std::vector<std::string> actionList;
+    std::vector<float> actionList;
     cv::Point2i currentPosition;
     
     cv::Mat imagery;
-    cv::Mat state;      // Use pointer or not?
+    cv::Mat state;      // Use pointer or not? - No.
     
     cv::Mat imageryPatch;    // The imagery patch around current position
     cv::Mat alphaPatch; // a fourth channel shows recent visited road cells
-    cv::Mat miniMap;
+    cv::Mat miniMap;    // not using
     
     cv::Size cellSize;  // basic unit in chessboard state
     cv::Size patchSize; // patch size for the network
-    cv::Size miniMapCellSize;   // cell size in mini map
-    int stepSize = 1;   // not used yet
+    cv::Size miniMapCellSize;   // cell size in mini map, not using
+    int stepSize = 2;
     int currentFileNameNum = 0;
     
     int reward = 0;
