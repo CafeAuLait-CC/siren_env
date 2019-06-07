@@ -40,18 +40,18 @@ GTImage::GTImage(std::string& fileName, cv::Size cellSize, cv::Size pixelSize) {
         }
     }
     
-    //    // Add a travel path to the edges
-    //    // When agent reaches an edge, use the travel path to find next entry point.
-    //    for (int i = 0; i < cellImage.rows; i++) {
-    //        if (i > 0 && i < cellImage.rows - 1) {  // not the first or last row, only label the left and right edges.
-    //            cellImage.at<cv::Vec3b>(i, 0)[0] = 4;      // label 4 for travel path
-    //            cellImage.at<cv::Vec3b>(i, cellImage.cols - 1)[0] = 4;
-    //        } else {        // the first and last row, label all pixel as 4
-    //            cv::Mat allOnesRow = cv::Mat::ones(1, cellImage.cols, CV_8UC3) * 4;
-    //            allOnesRow.copyTo(cellImage(cv::Range(0, 1), cv::Range(0, cellImage.cols)));
-    //            allOnesRow.copyTo(cellImage(cv::Range(cellImage.rows - 1, cellImage.rows), cv::Range(0, cellImage.cols)));
-    //        }
-    //    }
+//    // Add a travel path to the edges
+//    // When agent reaches an edge, use the travel path to find next entry point.
+//    for (int i = 0; i < cellImage.rows; i++) {
+//        if (i > 0 && i < cellImage.rows - 1) {  // not the first or last row, only label the left and right edges.
+//            cellImage.at<cv::Vec3b>(i, 0)[0] = 4;      // label 4 for travel path
+//            cellImage.at<cv::Vec3b>(i, cellImage.cols - 1)[0] = 4;
+//        } else {        // the first and last row, label all pixel as 4
+//            cv::Mat allOnesRow = cv::Mat::ones(1, cellImage.cols, CV_8UC3) * 4;
+//            allOnesRow.copyTo(cellImage(cv::Range(0, 1), cv::Range(0, cellImage.cols)));
+//            allOnesRow.copyTo(cellImage(cv::Range(cellImage.rows - 1, cellImage.rows), cv::Range(0, cellImage.cols)));
+//        }
+//    }
 }
 
 cv::Mat GTImage::getPattern() {

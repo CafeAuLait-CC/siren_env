@@ -43,17 +43,17 @@ void BoardState::initBoardState(int fileNameNum) {
     
     // Convert from pixel-based image to cell-based board
     /** Two options here
-     1. this->state = gtImg->getPattern(); without delete     --> use reference,
-     2. gtImg->getPattern().copyTo(this->state) with delete   --> copy data.
-     Becareful with the difference here!
-     
-     !! UPDATE: Should use option 2, otherwise it will cause problem in python!
-     Same with the 'rgbImg' above.
+        1. this->state = gtImg->getPattern(); without delete     --> use reference,
+        2. gtImg->getPattern().copyTo(this->state) with delete   --> copy data.
+        Becareful with the difference here!
+
+        !! UPDATE: Should use option 2, otherwise it will cause problem in python!
+                    Same with the 'rgbImg' above.
      */
     // this->state = gtImg->getPattern();
     gtImg->getPattern().copyTo(this->state);
     delete gtImg;
-    
+
     setStartLocation();     // Set a start cell for the agent. (Choose the first road cell as start point)
     
     // Calculate cell size. Height and width can be different.
@@ -62,9 +62,9 @@ void BoardState::initBoardState(int fileNameNum) {
     this->cellSize = cv::Size(s_i.width / s_g.width, s_i.height / s_g.height);
     
     this->imageryPatch = cv::Mat::zeros(this->patchSize, CV_8UC3);
-    //    this->miniMap = cv::Mat::zeros(this->patchSize, CV_8UC1);
-    //    this->miniMapCellSize = cv::Size(this->patchSize.height / (this->imagery.size().height / this->patchSize.height),
-    //                                        this->patchSize.width / (this->imagery.size().width / this->patchSize.width));
+//    this->miniMap = cv::Mat::zeros(this->patchSize, CV_8UC1);
+//    this->miniMapCellSize = cv::Size(this->patchSize.height / (this->imagery.size().height / this->patchSize.height),
+//                                        this->patchSize.width / (this->imagery.size().width / this->patchSize.width));
     
     // Generate the observation patch, 3 channels
     generateObservationPatch(currentPosition);
@@ -86,7 +86,7 @@ void BoardState::generateObservationPatch(const cv::Point2i& position) {
     // Generate new current patch and draw yellow cell at center
     int radius_row = this->imageryPatch.size().height / this->cellSize.height / 2;
     int radius_col = this->imageryPatch.size().width / this->cellSize.width / 2;
-    
+
     int pad_up = 0;
     int pad_down = 0;
     int pad_left = 0;
@@ -99,11 +99,11 @@ void BoardState::generateObservationPatch(const cv::Point2i& position) {
     // Padding: zero padding at edges of imagery tile
     paddingForImageryPatch(pad_up, pad_down, pad_left, pad_right, x_up, x_down, y_left, y_right);
     
-    //    // Generate corresponding alpha channel to tell the network about recent move history
-    //    generateAlphaChannel(pad_up, pad_down, pad_left, pad_right, x_up, y_left);
+//    // Generate corresponding alpha channel to tell the network about recent move history
+//    generateAlphaChannel(pad_up, pad_down, pad_left, pad_right, x_up, y_left);
     
-    //    // Generate the mini map
-    //    generateMiniMap();
+//    // Generate the mini map
+//    generateMiniMap();
 }
 
 void BoardState::paddingForImageryPatch(int &pad_up, int &pad_down, int &pad_left, int &pad_right, int &x_up, int &x_down, int &y_left, int &y_right) {
@@ -124,8 +124,8 @@ void BoardState::paddingForImageryPatch(int &pad_up, int &pad_down, int &pad_lef
     
     this->imageryPatch = cv::Mat::zeros(this->imageryPatch.size(), imagery.type());
     this->imagery(cv::Range(x_up, x_down), cv::Range(y_left, y_right))
-    .copyTo(this->imageryPatch(cv::Range(pad_up, this->imageryPatch.rows - pad_down),
-                               cv::Range(pad_left, this->imageryPatch.cols - pad_right)));
+        .copyTo(this->imageryPatch(cv::Range(pad_up, this->imageryPatch.rows - pad_down),
+                                   cv::Range(pad_left, this->imageryPatch.cols - pad_right)));
 }
 
 void BoardState::generateAlphaChannel(const int &pad_up, const int &pad_down, const int &pad_left, const int &pad_right, const int &x_up, const int &y_left) {
