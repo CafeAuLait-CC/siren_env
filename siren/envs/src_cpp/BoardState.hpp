@@ -168,7 +168,7 @@ private:
     cv::Size cellSize;  // basic unit in chessboard state
     cv::Size patchSize; // patch size for the network
     cv::Size miniMapCellSize;   // cell size in mini map, not using
-    int stepSize = 2;
+    int stepSize = 1;
     int currentFileNameNum = 0;
     
     int reward = 0;

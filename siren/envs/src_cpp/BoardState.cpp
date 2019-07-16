@@ -26,7 +26,7 @@ void BoardState::readConfigFromFile() {
     this->pathToImagery = basePath + "imagery/";
     this->fileNameListImagery = getImageFileNames(basePath + "name_list_imagery.txt");
     
-    this->patchSize = cv::Size(200, 200);
+    this->patchSize = cv::Size(128, 128);
 }
 
 // Chessboard initialization: background board(gt) + forground board(imagery for network)
@@ -39,7 +39,7 @@ void BoardState::initBoardState(int fileNameNum) {
     // this->imagery = rgbImg->getImagery();        // See the comment below!
     rgbImg->getImagery().copyTo(this->imagery);
     delete rgbImg;
-    GTImage* gtImg = new GTImage(fileNameGT, cv::Size(10, 10), this->imagery.size());
+    GTImage* gtImg = new GTImage(fileNameGT, cv::Size(8, 8), this->imagery.size());
     
     // Convert from pixel-based image to cell-based board
     /** Two options here
@@ -162,8 +162,9 @@ void BoardState::generateMiniMap() {
 // Init all posible actions
 void BoardState::initActionList() {
     // TODO: modify to read from file
-    for (int i = 0; i < 8; i++) {
-        this->actionList.push_back(i * (180.0f / 8.0f));  // 8 orientations from 0 to 180
+    int numberOfAction = 4;
+    for (int i = 0; i < numberOfAction; i++) {
+        this->actionList.push_back(i * (180.0f / numberOfAction));  // n orientations from 0 to 180
     }
 }
 
@@ -208,9 +209,9 @@ cv::Mat BoardState::getNextState(float action, bool checkActionLegality) {
         } else if (nextCellType == "TravelPath") {  // If the step lies on a travel path cell (edges), currently not in use
             this->reward -= 2;
         } else if (nextCellType == "RoadNeighbor_Unvisited") {  // If the step lies on a neighbor of road cell
-            this->reward += 10;
+            this->reward -= 4;
         } else {    // RoadNeighbor_Visited
-            this->reward -= 2;
+            this->reward -= 6;
         }
         generateObservationPatch(currentPosition);
     } else {
@@ -307,22 +308,22 @@ bool BoardState::getNextPosition(float action, cv::Point2i &nextPosition, const 
     bool isLegal = true;
     int currentX = currentPosition.x;
     int currentY = currentPosition.y;
-    int dx = round(this->stepSize * cos(action * 3.1415927 / 180));
-    int dy = round(this->stepSize * sin(action * 3.1415927 / 180));
+    int dy = round(this->stepSize * cos(action * 3.1415927 / 180));
+    int dx = round(this->stepSize * sin(action * 3.1415927 / 180));
     bool p1Valid = true;
     bool p2Valid = true;
-    cv::Point2i pt1 = cv::Point2i(currentX + dx, currentY + dy);
-    cv::Point2i pt2 = cv::Point2i(currentX - dx, currentY - dy);
+    cv::Point2i pt1 = cv::Point2i(currentX + dx, currentY - dy);
+    cv::Point2i pt2 = cv::Point2i(currentX - dx, currentY + dy);
     
     if (pt1.x < 0 || pt1.y < 0 || pt1.x >= this->state.rows ||      // Three conditions for each point (pt1 and pt2)
         pt1.y >= this->state.cols ||                                // 1. the point lies whitin the boundary
-        this->state.at<cv::Vec3b>(pt1.x, pt1.y)[1] > 255 ||         // 2. the nextPosition has been visited for less then 6 times
+        this->state.at<cv::Vec3b>(pt1.x, pt1.y)[1] > 249 ||         // 2. the nextPosition has been visited for less then 6 times
         !checkMoveDirectionNeighbors(currentPosition, pt1)) {       // 3. Either nextPosition or its neighbours should be (a) road pixel(s)
         p1Valid = false;
     }
     if (pt2.x < 0 || pt2.y < 0 || pt2.x >= this->state.rows ||
         pt2.y >= this->state.cols ||
-        this->state.at<cv::Vec3b>(pt2.x, pt2.y)[1] > 255 ||
+        this->state.at<cv::Vec3b>(pt2.x, pt2.y)[1] > 249 ||
         !checkMoveDirectionNeighbors(currentPosition, pt2)) {
         p2Valid = false;
     }
