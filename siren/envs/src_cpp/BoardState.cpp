@@ -444,7 +444,7 @@ void BoardState::setStartLocation() {
             }
         }
     }
-    this->state.at<uchar>(currentPosition.x, currentPosition.y) = 50;
+    this->state.at<cv::Vec3b>(currentPosition.x, currentPosition.y)[1] = 50;
 }
 
 // Random number generator used for sampling patches
