@@ -15,7 +15,7 @@ BoardState::BoardState() {
     readConfigFromFile();
     initActionList();
     this->currentFileNameNum = getRandomNumInRange(int(this->fileNameListGT.size())); // random number in range [0, fileNameListGT.size())
-    initBoardState(currentFileNameNum); // random sample an imagery tile to init the board
+    initBoardState(3);//currentFileNameNum); // random sample an imagery tile to init the board
 }
 
 // configurations
@@ -26,13 +26,15 @@ void BoardState::readConfigFromFile() {
     this->pathToImagery = basePath + "imagery/";
     this->fileNameListImagery = getImageFileNames(basePath + "name_list_imagery.txt");
     
-    this->patchSize = cv::Size(128, 128);
+    this->patchSize = cv::Size(256, 256);
 }
 
 // Chessboard initialization: background board(gt) + forground board(imagery for network)
 void BoardState::initBoardState(int fileNameNum) {
     std::string fileNameImagery = this->pathToImagery + this->fileNameListImagery[fileNameNum];
     std::string fileNameGT = this->pathToGTImages + this->fileNameListGT[fileNameNum];
+    
+    std::cout << "Running on " << this->fileNameListImagery[fileNameNum] << " ..." << std::endl;
     
     // Load image patch (rgb + gt) from file system
     RGBImage* rgbImg = new RGBImage(fileNameImagery);
@@ -99,8 +101,8 @@ void BoardState::generateObservationPatch(const cv::Point2i& position) {
     // Padding: zero padding at edges of imagery tile
     paddingForImageryPatch(pad_up, pad_down, pad_left, pad_right, x_up, x_down, y_left, y_right);
     
-//    // Generate corresponding alpha channel to tell the network about recent move history
-//    generateAlphaChannel(pad_up, pad_down, pad_left, pad_right, x_up, y_left);
+    // Generate corresponding alpha channel to tell the network about recent move history
+    generateAlphaChannel(pad_up, pad_down, pad_left, pad_right, x_up, y_left);
     
 //    // Generate the mini map
 //    generateMiniMap();
@@ -162,9 +164,10 @@ void BoardState::generateMiniMap() {
 // Init all posible actions
 void BoardState::initActionList() {
     // TODO: modify to read from file
-    int numberOfAction = 4;
+    int actionRangeSize = this->stepSize * 2 + 1;
+    int numberOfAction = actionRangeSize * 4 - 4;
     for (int i = 0; i < numberOfAction; i++) {
-        this->actionList.push_back(i * (180.0f / numberOfAction));  // n orientations from 0 to 180
+        this->actionList.push_back(i * (360.0f / numberOfAction));  // n orientations from 0 to 360
     }
 }
 
@@ -205,13 +208,13 @@ cv::Mat BoardState::getNextState(float action, bool checkActionLegality) {
             this->reward += 20;
             this->remainingRoadPoints--;
         } else if (nextCellType == "VisitedRoad") { // If the step lies on a visited road cell
-            this->reward -= 2;
+            this->reward -= 2 * (this->state.at<cv::Vec3b>(nextPosition.x, nextPosition.y)[1]/50);
         } else if (nextCellType == "TravelPath") {  // If the step lies on a travel path cell (edges), currently not in use
             this->reward -= 2;
         } else if (nextCellType == "RoadNeighbor_Unvisited") {  // If the step lies on a neighbor of road cell
             this->reward -= 4;
         } else {    // RoadNeighbor_Visited
-            this->reward -= 6;
+            this->reward -= 4 * (this->state.at<cv::Vec3b>(nextPosition.x, nextPosition.y)[1]/50);
         }
         generateObservationPatch(currentPosition);
     } else {
@@ -341,7 +344,7 @@ bool BoardState::getNextPosition(float action, cv::Point2i &nextPosition, const 
         }
     } else {    // If it's not necessory to check legality of the action (for example during testing)
                 // just apply the action ignore the legality (as long as it's not going out of the board).
-        if (nextPosition.x >= 0 && nextPosition.y >0 &&
+        if (nextPosition.x >= 0 && nextPosition.y > 0 &&
             nextPosition.x < this->state.rows && nextPosition.y < this->state.cols) {
             isLegal = true;
         }
@@ -432,11 +435,11 @@ std::vector<std::string> BoardState::getImageFileNames(std::string fileName) {
 // Set the start location in the chessboard, mark current position as 100
 void BoardState::setStartLocation() {
     bool isSet = false;
-    for (int i = 50; i < this->state.rows; i++) {
+    for (int i = getRandomNumInRange(this->state.rows-1); i < this->state.rows; i++) {
         if (isSet) {
             break;
         }
-        for (int j = 50; j < this->state.cols; j++) {
+        for (int j = getRandomNumInRange(this->state.cols-1); j < this->state.cols; j++) {
             if (this->state.at<cv::Vec3b>(i, j)[0] == 1) {
                 this->currentPosition = cv::Point2i(i, j);
                 isSet = true;

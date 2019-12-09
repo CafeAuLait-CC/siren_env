@@ -19,7 +19,7 @@ public:
     
     // Initialize
     GTImage();
-    GTImage(std::string& fileName, cv::Size cellSize = cv::Size(10, 10), cv::Size pixelSize = cv::Size(200, 200));    // cv::Size(width, height)
+    GTImage(std::string& fileName, cv::Size cellSize = cv::Size(8, 8), cv::Size pixelSize = cv::Size(256, 256));    // cv::Size(width, height)
 //    void generateGTPattern();
     
     //

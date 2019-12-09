@@ -161,9 +161,9 @@ private:
     cv::Mat imagery;
     cv::Mat state;      // Use pointer or not? - No.
     
-    cv::Mat imageryPatch;    // The imagery patch around current position
-    cv::Mat alphaPatch; // a fourth channel shows recent visited road cells
-    cv::Mat miniMap;    // not using
+    cv::Mat imageryPatch;   // The imagery patch around current position
+    cv::Mat alphaPatch;     // A fourth channel shows recent visited road cells
+    cv::Mat miniMap;        // not using
     
     cv::Size cellSize;  // basic unit in chessboard state
     cv::Size patchSize; // patch size for the network

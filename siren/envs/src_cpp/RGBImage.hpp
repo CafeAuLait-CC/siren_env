@@ -17,7 +17,7 @@
 class RGBImage {
 public:
     RGBImage();
-    RGBImage(std::string fileName, cv::Size patchSize = cv::Size(200, 200));
+    RGBImage(std::string fileName, cv::Size patchSize = cv::Size(256, 256));
     cv::Mat getImagery();
     
 private:
